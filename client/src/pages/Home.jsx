@@ -26,7 +26,6 @@ export default function Home() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [markers, setMarkers] = useState([]);
-  const [activeNav, setActiveNav] = useState('dashboard');
 
   useEffect(() => {
     fetchData();
@@ -88,61 +87,8 @@ export default function Home() {
     .slice(0, 4)
     .map(([name, count]) => ({ name, count, pct: Math.round((count / maxCat) * 100) }));
 
-  const navItems = [
-    { key: 'dashboard', label: 'Dashboard', icon: '▦', action: () => {} },
-    { key: 'report', label: 'Report Complaint', icon: '✎', action: () => navigate('/report') },
-    { key: 'track', label: 'Track Complaint', icon: '⌕', action: () => document.getElementById('track')?.scrollIntoView({ behavior: 'smooth' }) },
-    { key: 'analytics', label: 'Analytics', icon: '▤', action: () => navigate('/analytics') },
-    { key: 'login', label: 'Staff Login', icon: '⚙', action: () => navigate('/login') },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-60 bg-blue-800 text-white flex-shrink-0 min-h-screen">
-        <div className="flex items-center gap-3 px-5 py-6 border-b border-blue-700">
-          <div className="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center text-xl">🏛️</div>
-          <div>
-            <div className="font-bold text-lg">Shonglap</div>
-            <div className="text-xs text-blue-200">Dhaka Civic Portal</div>
-          </div>
-        </div>
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => { setActiveNav(item.key); item.action(); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                activeNav === item.key ? 'bg-white text-blue-800 shadow' : 'text-blue-100 hover:bg-blue-700'
-              }`}
-            >
-              <span className="text-lg">{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
-        </nav>
-        <div className="px-3 py-4 border-t border-blue-700 text-xs text-blue-300">
-          &copy; 2026 Shonglap
-        </div>
-      </aside>
-
-      {/* Main */}
-      <div className="flex-1 min-w-0">
-        {/* Content */}
-        <main className="p-4 md:p-6 space-y-6">
-          {/* Mobile nav */}
-          <div className="md:hidden flex gap-2 overflow-x-auto pb-2">
-            {navItems.map((item) => (
-              <button
-                key={item.key}
-                onClick={() => { setActiveNav(item.key); item.action(); }}
-                className="flex-shrink-0 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-              >
-                {item.icon} {item.label}
-              </button>
-            ))}
-          </div>
-
+    <div className="p-4 md:p-6 space-y-6">
           {/* Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <StatCard icon="⏳" iconColor="text-green-600" label="Pending" sub="All time" value={pending} />
@@ -294,8 +240,6 @@ export default function Home() {
               </div>
             </div>
           )}
-        </main>
-      </div>
     </div>
   );
 }
