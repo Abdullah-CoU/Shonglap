@@ -9,7 +9,7 @@
     "dev": "node --watch src/server.js",
     "seed": "node src/scripts/seed.js",
     "seed:demo": "node scripts/seedDemo.js",    "eval:routing": "node scripts/evalRouting.js",
-    "eval:transcription": "node scripts/evalTranscription.js",    "test": "cross-env NODE_ENV=test node --experimental-vm-modules ../node_modules/jest/bin/jest.js --runInBand"
+    "eval:transcription": "node scripts/evalTranscription.js",    "test": "cross-env NODE_ENV=test MOCK_LLM=true MOCK_TRANSCRIPTION=true node --experimental-vm-modules ../node_modules/jest/bin/jest.js --runInBand"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",

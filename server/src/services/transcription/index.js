@@ -3,11 +3,13 @@ import { logger } from '../../utils/logger.js';
 import * as openaiProvider from './openai.js';
 import * as whispercppProvider from './whispercpp.js';
 import * as sidecarProvider from './sidecar.js';
+import * as geminiProvider from './gemini.js';
 
 const PROVIDERS = {
   openai: openaiProvider,
   whispercpp: whispercppProvider,
   sidecar: sidecarProvider,
+  gemini: geminiProvider,
 };
 
 const MOCK_TRANSCRIPT = 'গুলশান ২ নম্বর রোডে বড় গর্ত হয়েছে, গাড়ি চলতে পারছে না।';

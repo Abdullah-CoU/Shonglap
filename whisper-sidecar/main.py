@@ -15,13 +15,12 @@ COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "default")
 
 # Dhaka civic terms to bias recognition
 INITIAL_PROMPT = (
-    "Dhaka, Bangladesh civic complaint. Common areas: Gulshan, Banani, Dhanmondi, "
-    "Uttara, Mirpur, Motijheel, Old Dhaka, Jatrabari, Mohammadpur, Tejgaon, Badda, "
-    "Rampura, Baridhara, Mohakhali, Kafrul, Cantonment, Wari, Lalbagh, Sutrapur, "
-    "Gendaria, Shyampur, Demra, Kadamtali, Adabar, Hazaribagh, Savar. "
-    "Civic terms: road, pothole, garbage, waste, mosquito, dengue, streetlight, "
-    "water, sewerage, waterlogging, electricity, power, gas leak, construction, "
-    "illegal, traffic, jam, police, fire, pollution, noise."
+    "ঢাকা, বাংলাদেশ নাগরিক অভিযোগ। এলাকা: গুলশান, বনানী, ধানমন্ডি, উত্তরা, মিরপুর, "
+    "মতিঝিল, পুরান ঢাকা, যাত্রাবাড়ী, মোহাম্মদপুর, তেজগাঁও, বড্ডা, রামপুরা, "
+    "বারিধারা, মোহাখালি, কাফরুল, ক্যান্টনমেন্ট, ওয়ারী, লালবাগ, সুত্রাপুর, "
+    "জেন্ডারিয়া, শ্যামপুর, দেমড়া, কদমতলী, আদাবর, হাজারীবাগ, সাভার। "
+    "সমস্যা: রাস্তা, গর্ত, ময়লা, আবর্জনা, মশা, ডেঙ্গু, বাতি, পানি, ড্রেন, "
+    "জলাবদ্ধতা, বিদ্যুৎ, গ্যাস লিক, নির্মাণ, ট্রাফিক, পুলিশ, আগুন, দূষণ।"
 )
 
 _model = None
@@ -58,7 +57,7 @@ async def transcribe(file: UploadFile = File(...), language: str = Form("bn")):
             tmp_path,
             language=language,
             initial_prompt=INITIAL_PROMPT,
-            beam_size=5,
+            beam_size=int(os.getenv("WHISPER_BEAM_SIZE", "1")),
         )
 
         segment_list = []

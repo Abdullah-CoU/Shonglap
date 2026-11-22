@@ -8,7 +8,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   MONGODB_URI: z.string().default('mongodb://localhost:27017/shonglap_test'),
   JWT_SECRET: z.string().default('test-secret-key'),
-  TRANSCRIBE_PROVIDER: z.enum(['openai', 'whispercpp', 'sidecar']).default('openai'),
+  TRANSCRIBE_PROVIDER: z.enum(['openai', 'whispercpp', 'sidecar', 'gemini']).default('openai'),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_TRANSCRIBE_MODEL: z.string().default('whisper-1'),
   WHISPERCPP_MODEL: z.string().default('medium'),
