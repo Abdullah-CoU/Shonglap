@@ -151,8 +151,9 @@ describe('Analytics Tests', () => {
     expect(res.body.data.triaged).toBe(1); // 1 triage
   });
 
-  test('analytics requires auth', async () => {
+  test('analytics is public (no auth required)', async () => {
     const res = await request(app).get('/api/analytics/complaints-per-area');
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toBeDefined();
   });
 });
