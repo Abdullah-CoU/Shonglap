@@ -21,6 +21,10 @@ build/
 uploads/
 **/uploads/
 
+# Local Docker MongoDB data (persistent DB — do not commit)
+docker-data/
+**/docker-data/
+
 # Test / evaluation output
 test-results/
 playwright-report/
