@@ -61,7 +61,7 @@ const resources = {
   },
   bn: {
     translation: {
-      appTitle: 'শোনালাপ - নাগরিক অভিযোগ পোর্টাল',
+      appTitle: 'সংলাপ - নাগরিক অভিযোগ পোর্টাল',
       reportProblem: 'সমস্যা রিপোর্ট করুন',
       trackComplaint: 'অভিযোগ ট্র্যাক করুন',
       trackById: 'আইডি দিয়ে ট্র্যাক',

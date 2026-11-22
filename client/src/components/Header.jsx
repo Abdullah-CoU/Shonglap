@@ -26,7 +26,7 @@ export default function Header({ compact = false }) {
           <span className="text-2xl sm:text-3xl flex-shrink-0">🏛️</span>
           <div className="min-w-0">
             <div className="font-bold text-sm sm:text-base text-blue-900 truncate">
-              {i18n.language === 'bn' ? 'শোনালাপ' : 'Shonglap'}
+              {i18n.language === 'bn' ? 'সংলাপ' : 'Shonglap'}
             </div>
           </div>
         </button>

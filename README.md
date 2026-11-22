@@ -1,4 +1,4 @@
-# Shonglap (শোনালাপ) - Dhaka Civic Complaint Auto-Routing Portal
+# Shonglap (সংলাপ) - Dhaka Civic Complaint Auto-Routing Portal
 
 Shonglap is a comprehensive MERN-stack portal designed for Dhaka, Bangladesh, enabling citizens to report civic problems (via text, photo, or Bangla voice note) with automated multi-stage routing, Zod validation, and departmental dashboards.
 

@@ -58,7 +58,7 @@ export default function Sidebar({ open, onClose }) {
         <button onClick={() => go('/')} className="flex items-center gap-3 px-5 py-6 border-b border-blue-700 hover:bg-blue-700 text-left">
           <span className="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center text-xl">🏛️</span>
           <div>
-            <div className="font-bold text-lg">{isBn ? 'শোনালাপ' : 'Shonglap'}</div>
+            <div className="font-bold text-lg">{isBn ? 'সংলাপ' : 'Shonglap'}</div>
             <div className="text-xs text-blue-200">{isBn ? 'ঢাকা নাগরিক পোর্টাল' : 'Dhaka Civic Portal'}</div>
           </div>
         </button>
