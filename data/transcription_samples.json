@@ -1,0 +1,62 @@
+[
+  {
+    "id": "sample_1",
+    "audioFile": "data/samples/bangla_1.wav",
+    "reference": "গুলশান ২ নম্বর রোডে বড় গর্ত হয়েছে",
+    "description": "Road pothole complaint"
+  },
+  {
+    "id": "sample_2",
+    "audioFile": "data/samples/bangla_2.wav",
+    "reference": "মিরপুর ১০ এ ময়লা জমা হয়েছে",
+    "description": "Garbage complaint"
+  },
+  {
+    "id": "sample_3",
+    "audioFile": "data/samples/bangla_3.wav",
+    "reference": "ধানমন্ডি এলাকায় মশা বেশি",
+    "description": "Mosquito complaint"
+  },
+  {
+    "id": "sample_4",
+    "audioFile": "data/samples/bangla_4.wav",
+    "reference": "পানি সরবরাহ বন্ধ আছে",
+    "description": "Water supply complaint"
+  },
+  {
+    "id": "sample_5",
+    "audioFile": "data/samples/bangla_5.wav",
+    "reference": "বিদ্যুৎ নেই উত্তরায়",
+    "description": "Electricity complaint"
+  },
+  {
+    "id": "sample_6",
+    "audioFile": "data/samples/bangla_6.wav",
+    "reference": "গ্যাস লিক হচ্ছে রান্নাঘরে",
+    "description": "Gas leak complaint"
+  },
+  {
+    "id": "sample_7",
+    "audioFile": "data/samples/bangla_7.wav",
+    "reference": "রাস্তার বাতি জ্বলছে না",
+    "description": "Streetlight complaint"
+  },
+  {
+    "id": "sample_8",
+    "audioFile": "data/samples/bangla_8.wav",
+    "reference": "অবৈধ নির্মাণ হচ্ছে গুলশানে",
+    "description": "Illegal construction complaint"
+  },
+  {
+    "id": "sample_9",
+    "audioFile": "data/samples/bangla_9.wav",
+    "reference": "ট্রাফিক জ্যাম বিমানবন্দর রোডে",
+    "description": "Traffic complaint"
+  },
+  {
+    "id": "sample_10",
+    "audioFile": "data/samples/bangla_10.wav",
+    "reference": "কারখানার ধোঁয়ায় দম বন্ধ হয়ে যাচ্ছে",
+    "description": "Pollution complaint"
+  }
+]

@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: shonglap-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: shonglap-server
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - PORT=5000
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/shonglap
+      - CORS_ORIGIN=http://localhost:5173
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+      - ./uploads:/app/uploads
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: shonglap-client
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    restart: unless-stopped
+
+  whisper-sidecar:
+    build:
+      context: ./whisper-sidecar
+      dockerfile: Dockerfile
+    container_name: shonglap-whisper
+    ports:
+      - "8000:8000"
+    environment:
+      - WHISPER_MODEL=large-v3
+      - WHISPER_DEVICE=auto
+    restart: unless-stopped
+
+volumes:
+  mongo_data:

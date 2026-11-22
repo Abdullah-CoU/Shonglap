@@ -1,0 +1,198 @@
+[
+  {
+    "areaName": "Uttara",
+    "wards": [1, 2, 3, 4, 5, 6, 7],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Mirpur",
+    "wards": [5, 6, 7, 8, 9, 10, 11, 12, 13],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Gulshan",
+    "wards": [18, 19, 20],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Banani",
+    "wards": [19, 20],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Baridhara",
+    "wards": [18, 19],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Badda",
+    "wards": [20, 21, 22],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Rampura",
+    "wards": [20, 21],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Mohakhali",
+    "wards": [19, 20],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Tejgaon",
+    "wards": [23, 24, 25],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Kafrul",
+    "wards": [14, 15, 16],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Cantonment",
+    "wards": [1, 2, 3],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Dhanmondi",
+    "wards": [14, 15, 16],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Motijheel",
+    "wards": [8, 9, 10, 11],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Old Dhaka",
+    "wards": [26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Jatrabari",
+    "wards": [41, 42, 43, 44],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Wari",
+    "wards": [37, 38, 39, 40],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Lalbagh",
+    "wards": [26, 27, 28],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Sutrapur",
+    "wards": [34, 35, 36],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Gendaria",
+    "wards": [39, 40],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Shyampur",
+    "wards": [41, 42],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Demra",
+    "wards": [44, 45, 46, 47],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Kadamtali",
+    "wards": [48, 49, 50],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Mohammadpur",
+    "wards": [23, 24, 25],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Adabar",
+    "wards": [23, 24],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Hazaribagh",
+    "wards": [26, 27],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Keraniganj",
+    "wards": [51, 52],
+    "cityCorp": "DSCC",
+    "powerZone": "DPDC",
+    "verified": false
+  },
+  {
+    "areaName": "Savar",
+    "wards": [53, 54, 55],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  },
+  {
+    "areaName": "Keraniganj (North)",
+    "wards": [56, 57],
+    "cityCorp": "DNCC",
+    "powerZone": "DESCO",
+    "verified": false
+  }
+]

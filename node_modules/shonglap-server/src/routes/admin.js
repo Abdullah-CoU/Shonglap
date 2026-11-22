@@ -1,0 +1,186 @@
+import express from 'express';
+import { z } from 'zod';
+import { Complaint } from '../models/Complaint.js';
+import { Department } from '../models/Department.js';
+import { RoutingCorrection } from '../models/RoutingCorrection.js';
+import { User } from '../models/User.js';
+import { requireAuth, requireRole, loadUser } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { logger } from '../utils/logger.js';
+
+const router = express.Router();
+
+const assignSchema = z.object({
+  departmentId: z.string().min(1),
+  note: z.string().optional().default(''),
+});
+
+const rerouteSchema = z.object({
+  newDepartmentId: z.string().min(1),
+  note: z.string().optional().default(''),
+});
+
+// Triage queue: complaints with status 'triage'
+router.get('/triage', requireAuth, requireRole('admin'), loadUser, async (req, res, next) => {
+  try {
+    const complaints = await Complaint.find({ status: 'triage' })
+      .populate('routing.department')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json({ complaints, total: complaints.length });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Manual assign a complaint to a department
+router.post('/complaints/:id/assign', requireAuth, requireRole('admin'), loadUser, validate(assignSchema), async (req, res, next) => {
+  try {
+    const { departmentId, note } = req.validated;
+
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) {
+      return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
+    }
+
+    const department = await Department.findById(departmentId).lean();
+    if (!department) {
+      return res.status(404).json({ error: { message: 'Department not found', status: 404 } });
+    }
+
+    // Save routing correction if there was a previous primary department
+    const originalPrimary = complaint.routing.find((r) => r.isPrimary);
+    if (originalPrimary && originalPrimary.department.toString() !== departmentId) {
+      await RoutingCorrection.create({
+        complaint: complaint._id,
+        originalDepartment: originalPrimary.department,
+        correctedDepartment: departmentId,
+        correctedBy: req.dbUser._id,
+      });
+    }
+
+    // Update routing
+    complaint.routing = [
+      {
+        department: departmentId,
+        isPrimary: true,
+        assignedBy: 'manual',
+        reason: note || 'Manual assignment by admin',
+      },
+      ...complaint.routing.filter((r) => !r.isPrimary),
+    ];
+
+    complaint.status = 'assigned';
+    complaint.statusLog.push({
+      status: 'assigned',
+      note: note || `Manually assigned to ${department.nameEn}`,
+      actor: req.dbUser.name || req.dbUser.email,
+      at: new Date(),
+    });
+
+    await complaint.save();
+
+    const lean = complaint.toObject();
+    res.status(200).json({ complaint: lean });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Re-route a complaint to a different department
+router.post('/complaints/:id/reroute', requireAuth, requireRole('admin'), loadUser, validate(rerouteSchema), async (req, res, next) => {
+  try {
+    const { newDepartmentId, note } = req.validated;
+
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) {
+      return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
+    }
+
+    const newDept = await Department.findById(newDepartmentId).lean();
+    if (!newDept) {
+      return res.status(404).json({ error: { message: 'Department not found', status: 404 } });
+    }
+
+    // Find original primary
+    const originalPrimary = complaint.routing.find((r) => r.isPrimary);
+    const originalDeptId = originalPrimary ? originalPrimary.department : null;
+
+    // Save routing correction
+    if (originalDeptId && originalDeptId.toString() !== newDepartmentId) {
+      await RoutingCorrection.create({
+        complaint: complaint._id,
+        originalDepartment: originalDeptId,
+        correctedDepartment: newDepartmentId,
+        correctedBy: req.dbUser._id,
+      });
+    }
+
+    // Update routing: replace primary
+    complaint.routing = complaint.routing.map((r) => {
+      if (r.isPrimary) {
+        return {
+          department: newDepartmentId,
+          isPrimary: true,
+          assignedBy: 'manual',
+          reason: note || `Re-routed to ${newDept.nameEn} by admin`,
+        };
+      }
+      return r;
+    });
+
+    // If no primary existed, add one
+    if (!complaint.routing.some((r) => r.isPrimary)) {
+      complaint.routing.unshift({
+        department: newDepartmentId,
+        isPrimary: true,
+        assignedBy: 'manual',
+        reason: note || `Re-routed to ${newDept.nameEn} by admin`,
+      });
+    }
+
+    complaint.status = 'assigned';
+    complaint.statusLog.push({
+      status: 'assigned',
+      note: note || `Re-routed to ${newDept.nameEn}`,
+      actor: req.dbUser.name || req.dbUser.email,
+      at: new Date(),
+    });
+
+    await complaint.save();
+
+    const lean = complaint.toObject();
+    res.status(200).json({ complaint: lean });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// List all complaints (admin)
+router.get('/complaints', requireAuth, requireRole('admin'), loadUser, async (req, res, next) => {
+  try {
+    const { urgency, status, area, from, to } = req.query;
+    const filter = {};
+
+    if (urgency) filter.urgency = urgency;
+    if (status) filter.status = status;
+    if (area) filter.area = new RegExp(area, 'i');
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to) filter.createdAt.$lte = new Date(to);
+    }
+
+    const complaints = await Complaint.find(filter)
+      .populate('routing.department')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json({ complaints, total: complaints.length });
+  } catch (err) {
+    next(err);
+  }
+});
+
+export default router;
