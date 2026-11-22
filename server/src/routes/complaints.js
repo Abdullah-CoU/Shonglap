@@ -508,6 +508,34 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
   }
 });
 
+// GET /api/complaints/search?q=... - public search by tracking ID, area, category, description
+router.get('/search', async (req, res, next) => {
+  try {
+    const q = (req.query.q || '').trim();
+    if (!q) return res.status(200).json({ results: [] });
+
+    const filter = {
+      $or: [
+        { trackingId: new RegExp(q, 'i') },
+        { area: new RegExp(q, 'i') },
+        { category: new RegExp(q, 'i') },
+        { description: new RegExp(q, 'i') },
+        { descriptionBn: new RegExp(q, 'i') },
+      ],
+    };
+
+    const results = await Complaint.find(filter)
+      .select('trackingId category area description status urgency createdAt')
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean();
+
+    res.status(200).json({ results });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/complaints/map - public map data
 router.get('/map', async (req, res, next) => {
   try {

@@ -12,6 +12,7 @@ import authRouter from './routes/auth.js';
 import departmentsRouter from './routes/departments.js';
 import adminRouter from './routes/admin.js';
 import analyticsRouter from './routes/analytics.js';
+import notificationsRouter from './routes/notifications.js';
 const app = express();
 
 app.use(helmet());
@@ -36,6 +37,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/departments', departmentsRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/notifications', notificationsRouter);
 
 // 404 Not Found Handler
 app.use((req, res, next) => {
