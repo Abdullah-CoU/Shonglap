@@ -1,48 +1,42 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { isAuthenticated, getUser, isAdmin, logout } from '../auth.js';
+import { isAuthenticated, getUser, logout } from '../auth.js';
 
 /**
- * Shared address bar / header used on every page.
- * Shows app identity, Dhaka address, language toggle, notifications, and profile.
+ * Shared header used on every page.
+ * App icon + name navigate to Home. Shows language toggle, notifications, and profile.
  */
 export default function Header({ compact = false }) {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const navigate = useNavigate();
 
   const toggleLang = () => i18n.changeLanguage(i18n.language === 'bn' ? 'en' : 'bn');
   const authed = isAuthenticated();
   const user = getUser();
-  const homePath = authed ? (isAdmin() ? '/dashboard/admin' : '/dashboard') : '/';
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex items-center justify-between gap-3">
-        {/* Brand + Address */}
+        {/* App icon + name — click navigates to Home */}
         <button
-          onClick={() => navigate(homePath)}
-          className="flex items-center gap-2.5 min-w-0 text-left"
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2.5 min-w-0 text-left hover:opacity-80 transition-opacity"
+          aria-label="Go to home page"
         >
           <span className="text-2xl sm:text-3xl flex-shrink-0">🏛️</span>
           <div className="min-w-0">
             <div className="font-bold text-sm sm:text-base text-blue-900 truncate">
               {i18n.language === 'bn' ? 'শোনালাপ' : 'Shonglap'}
             </div>
-            <div className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-500">
-              <span>📍</span>
-              <span className="truncate">
-                {i18n.language === 'bn' ? 'ঢাকা, বাংলাদেশ' : 'Dhaka, Bangladesh'}
-              </span>
-            </div>
           </div>
         </button>
 
-        {/* Center: address label on larger screens */}
+        {/* Center tagline on larger screens */}
         {!compact && (
           <div className="hidden md:flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-1.5">
             <span className="text-gray-400">⌕</span>
             <span className="text-sm text-gray-600">
-              {i18n.language === 'bn' ? 'আপনার এলাকার সমস্যা রিপোর্ট করুন' : 'Report your area problem'}
+              {i18n.language === 'bn' ? 'নাগরিক সমস্যা রিপোর্ট পোর্টাল' : 'Civic Complaint Portal'}
             </span>
           </div>
         )}
@@ -63,7 +57,7 @@ export default function Header({ compact = false }) {
           </button>
           <button
             onClick={() => {
-              if (authed) { logout(); navigate('/login'); }
+              if (authed) { logout(); navigate('/'); }
               else navigate('/login');
             }}
             className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold"
