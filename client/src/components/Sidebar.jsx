@@ -53,7 +53,7 @@ export default function Sidebar({ open, onClose }) {
       {/* Mobile overlay */}
       {open && <div className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden" onClick={onClose} />}
 
-      <aside className={`fixed md:static inset-y-0 left-0 z-50 w-60 bg-blue-800 text-white flex flex-col flex-shrink-0 transform transition-transform duration-200 ${
+      <aside className={`fixed inset-y-0 left-0 z-50 w-60 bg-blue-800 text-white flex flex-col transform transition-transform duration-200 ${
         open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
         <button onClick={() => go('/')} className="flex items-center gap-3 px-5 py-6 border-b border-blue-700 hover:bg-blue-700 text-left">

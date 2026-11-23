@@ -3,7 +3,7 @@ import Header from './Header.jsx';
 import Sidebar from './Sidebar.jsx';
 
 /**
- * App layout: header + sidebar on every route.
+ * App layout: fixed sidebar + sticky header on every route.
  * Provides a mobile hamburger to open the sidebar drawer.
  */
 export default function Layout({ children }) {
@@ -11,27 +11,27 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <div className="flex-1 min-w-0 flex flex-col">
-          <div className="flex items-center">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="md:hidden text-2xl px-4 py-3 text-gray-700"
-              aria-label="Open menu"
-            >
-              ☰
-            </button>
-            <div className="flex-1">
-              <Header />
-            </div>
+      {/* Offset main content by sidebar width on desktop */}
+      <div className="md:ml-60 min-h-screen flex flex-col">
+        {/* Sticky header row (hamburger + header) */}
+        <div className="sticky top-0 z-30 flex items-center bg-white">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden text-2xl px-4 py-3 text-gray-700"
+            aria-label="Open menu"
+          >
+            ☰
+          </button>
+          <div className="flex-1">
+            <Header />
           </div>
-
-          <main className="flex-1">
-            {children}
-          </main>
         </div>
+
+        <main className="flex-1">
+          {children}
+        </main>
       </div>
     </div>
   );
