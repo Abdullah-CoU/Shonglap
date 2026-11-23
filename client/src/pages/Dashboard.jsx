@@ -191,7 +191,7 @@ export default function Dashboard() {
                         onClick={() => setSelected(c)}
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                       >
-                        {t('viewAll')}
+                        {t('viewDetails')}
                       </button>
                     </td>
                   </tr>
@@ -218,6 +218,7 @@ export default function Dashboard() {
 }
 
 function ComplaintDetail({ complaint, onClose, onRefresh }) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState(complaint.status);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
@@ -293,7 +294,7 @@ function ComplaintDetail({ complaint, onClose, onRefresh }) {
           <div>
             <h3 className="font-semibold mb-2">Location</h3>
             <a href={mapLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
-              {t('viewAll')} on Map
+              {t('viewOnMap')}
             </a>
           </div>
         )}
