@@ -4,7 +4,7 @@ import { Complaint } from '../models/Complaint.js';
 import { Department } from '../models/Department.js';
 import { RoutingCorrection } from '../models/RoutingCorrection.js';
 import { User } from '../models/User.js';
-import { requireAuth, requireRole, loadUser } from '../middleware/auth.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { logger } from '../utils/logger.js';
 
@@ -21,7 +21,7 @@ const rerouteSchema = z.object({
 });
 
 // Triage queue: complaints with status 'triage'
-router.get('/triage', requireAuth, requireRole('admin'), loadUser, async (req, res, next) => {
+router.get('/triage', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
     const complaints = await Complaint.find({ status: 'triage' })
       .populate('routing.department')
@@ -35,7 +35,7 @@ router.get('/triage', requireAuth, requireRole('admin'), loadUser, async (req, r
 });
 
 // Manual assign a complaint to a department
-router.post('/complaints/:id/assign', requireAuth, requireRole('admin'), loadUser, validate(assignSchema), async (req, res, next) => {
+router.post('/complaints/:id/assign', requireAuth, requireRole('admin'), validate(assignSchema), async (req, res, next) => {
   try {
     const { departmentId, note } = req.validated;
 
@@ -89,7 +89,7 @@ router.post('/complaints/:id/assign', requireAuth, requireRole('admin'), loadUse
 });
 
 // Re-route a complaint to a different department
-router.post('/complaints/:id/reroute', requireAuth, requireRole('admin'), loadUser, validate(rerouteSchema), async (req, res, next) => {
+router.post('/complaints/:id/reroute', requireAuth, requireRole('admin'), validate(rerouteSchema), async (req, res, next) => {
   try {
     const { newDepartmentId, note } = req.validated;
 
@@ -158,7 +158,7 @@ router.post('/complaints/:id/reroute', requireAuth, requireRole('admin'), loadUs
 });
 
 // List all complaints (admin)
-router.get('/complaints', requireAuth, requireRole('admin'), loadUser, async (req, res, next) => {
+router.get('/complaints', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
     const { urgency, status, area, from, to } = req.query;
     const filter = {};

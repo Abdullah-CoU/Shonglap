@@ -4,9 +4,10 @@ import { User } from '../models/User.js';
 import { logger } from '../utils/logger.js';
 
 /**
- * Require authentication via JWT token.
+ * Require authentication via JWT token. Verifies signature and loads the
+ * user from DB so role/department always come from the source of truth.
  */
-export function requireAuth(req, res, next) {
+export async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: { message: 'Authentication required', status: 401 } });
@@ -16,6 +17,13 @@ export function requireAuth(req, res, next) {
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET);
     req.user = decoded;
+
+    // Reject tokens for deleted users
+    const user = await User.findById(decoded.id).populate('department').lean();
+    if (!user) {
+      return res.status(401).json({ error: { message: 'User no longer exists', status: 401 } });
+    }
+    req.dbUser = user;
     next();
   } catch (err) {
     logger.warn({ err: err.message }, 'Invalid token');
@@ -24,15 +32,17 @@ export function requireAuth(req, res, next) {
 }
 
 /**
- * Require a specific role.
+ * Require a specific role. Uses the DB-loaded user when available.
+ * Must be used AFTER requireAuth.
  * @param {...string} roles - Allowed roles ('department', 'admin').
  */
 export function requireRole(...roles) {
   return (req, res, next) => {
-    if (!req.user) {
+    const role = req.dbUser?.role || req.user?.role;
+    if (!role) {
       return res.status(401).json({ error: { message: 'Authentication required', status: 401 } });
     }
-    if (!roles.includes(req.user.role)) {
+    if (!roles.includes(role)) {
       return res.status(403).json({ error: { message: 'Insufficient permissions', status: 403 } });
     }
     next();
@@ -40,18 +50,33 @@ export function requireRole(...roles) {
 }
 
 /**
- * Load full user from DB (with department populated).
+ * Ensure a department user has a department assigned.
+ * Prevents a misconfigured account from seeing all complaints.
+ */
+export function requireDepartment(req, res, next) {
+  const role = req.dbUser?.role || req.user?.role;
+  if (role === 'department' && !req.dbUser?.department) {
+    return res.status(403).json({ error: { message: 'No department assigned to this account', status: 403 } });
+  }
+  next();
+}
+
+/**
+ * Backwards-compatible alias — requireAuth now loads the user itself,
+ * so this is a no-op kept for existing routes.
  */
 export async function loadUser(req, res, next) {
-  if (!req.user?.id) return next();
-  try {
-    const user = await User.findById(req.user.id).populate('department').lean();
-    if (!user) {
-      return res.status(401).json({ error: { message: 'User not found', status: 401 } });
-    }
-    req.dbUser = user;
-    next();
-  } catch (err) {
-    next(err);
+  next();
+}
+
+/**
+ * Scoping helper for complaint queries. Returns a Mongoose filter fragment
+ * that restricts department users to their own department.
+ */
+export function departmentScope(user) {
+  if (user?.role === 'department') {
+    if (!user.department) return null; // caller should deny
+    return { 'routing.department': user.department._id };
   }
+  return {};
 }

@@ -2,7 +2,7 @@ import express from 'express';
 import { z } from 'zod';
 import { Complaint } from '../models/Complaint.js';
 import { Department } from '../models/Department.js';
-import { requireAuth, requireRole, loadUser } from '../middleware/auth.js';
+import { requireAuth, requireRole, requireDepartment, departmentScope } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { sendStatusUpdate } from '../services/notify.js';
 import { logger } from '../utils/logger.js';
@@ -26,7 +26,7 @@ router.get('/', async (req, res, next) => {
 });
 
 // List complaints for the department
-router.get('/complaints', requireAuth, requireRole('department', 'admin'), loadUser, async (req, res, next) => {
+router.get('/complaints', requireAuth, requireRole('department', 'admin'), requireDepartment, async (req, res, next) => {
   try {
     const { urgency, status, area, from, to } = req.query;
 
@@ -61,7 +61,7 @@ router.get('/complaints', requireAuth, requireRole('department', 'admin'), loadU
 });
 
 // Get complaint detail
-router.get('/complaints/:id', requireAuth, requireRole('department', 'admin'), loadUser, async (req, res, next) => {
+router.get('/complaints/:id', requireAuth, requireRole('department', 'admin'), requireDepartment, async (req, res, next) => {
   try {
     const complaint = await Complaint.findById(req.params.id)
       .populate('routing.department')
@@ -87,7 +87,7 @@ router.get('/complaints/:id', requireAuth, requireRole('department', 'admin'), l
 });
 
 // Update complaint status
-router.patch('/complaints/:id/status', requireAuth, requireRole('department', 'admin'), loadUser, validate(statusUpdateSchema), async (req, res, next) => {
+router.patch('/complaints/:id/status', requireAuth, requireRole('department', 'admin'), requireDepartment, validate(statusUpdateSchema), async (req, res, next) => {
   try {
     const { status, note, resolutionPhoto } = req.validated;
 

@@ -1,6 +1,6 @@
 import express from 'express';
 import { Complaint } from '../models/Complaint.js';
-import { requireAuth, requireRole, loadUser } from '../middleware/auth.js';
+import { requireAuth, requireRole, requireDepartment } from '../middleware/auth.js';
 import { logger } from '../utils/logger.js';
 import { User } from '../models/User.js';
 
@@ -76,7 +76,7 @@ function buildNotifications(complaints, role) {
 }
 
 // GET /api/notifications
-router.get('/', requireAuth, requireRole('department', 'admin'), loadUser, async (req, res, next) => {
+router.get('/', requireAuth, requireRole('department', 'admin'), requireDepartment, async (req, res, next) => {
   try {
     const user = req.dbUser;
     const role = user.role;
@@ -104,7 +104,7 @@ router.get('/', requireAuth, requireRole('department', 'admin'), loadUser, async
 });
 
 // POST /api/notifications/read - mark specific (or all) notifications as read
-router.post('/read', requireAuth, requireRole('department', 'admin'), loadUser, async (req, res, next) => {
+router.post('/read', requireAuth, requireRole('department', 'admin'), requireDepartment, async (req, res, next) => {
   try {
     const { ids } = req.body || {};
     const user = req.dbUser;
