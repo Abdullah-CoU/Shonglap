@@ -77,37 +77,37 @@ export default function Analytics() {
           {/* Summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <p className="text-sm text-gray-500">Auto-Route Rate</p>
+              <p className="text-sm text-gray-500">{t('autoRouteRate')}</p>
               <p className="text-2xl font-bold text-blue-600">
                 {autoRouteData ? (autoRouteData.autoRouteRate * 100).toFixed(1) + '%' : '—'}
               </p>
               <p className="text-xs text-gray-400">
-                {autoRouteData ? `${autoRouteData.autoRouted}/${autoRouteData.total} auto-routed` : ''}
+                {autoRouteData ? `${autoRouteData.autoRouted}/${autoRouteData.total} ${t('autoRouted')}` : ''}
               </p>
             </div>
             <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <p className="text-sm text-gray-500">Triage Rate</p>
+              <p className="text-sm text-gray-500">{t('triageRate')}</p>
               <p className="text-2xl font-bold text-orange-600">
                 {autoRouteData ? (autoRouteData.triageRate * 100).toFixed(1) + '%' : '—'}
               </p>
               <p className="text-xs text-gray-400">
-                {autoRouteData ? `${autoRouteData.triaged}/${autoRouteData.total} triaged` : ''}
+                {autoRouteData ? `${autoRouteData.triaged}/${autoRouteData.total} ${t('triaged')}` : ''}
               </p>
             </div>
             <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <p className="text-sm text-gray-500">Avg Resolution Time</p>
+              <p className="text-sm text-gray-500">{t('avgResolutionTime')}</p>
               <p className="text-2xl font-bold text-green-600">
                 {avgResolution ? avgResolution.avgResolutionHours.toFixed(1) + 'h' : '—'}
               </p>
               <p className="text-xs text-gray-400">
-                {avgResolution ? `${avgResolution.count} resolved` : ''}
+                {avgResolution ? `${avgResolution.count} ${t('resolvedCount')}` : ''}
               </p>
             </div>
           </div>
 
           {/* Complaints per area */}
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h2 className="text-lg font-semibold mb-4">Complaints per Area</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('complaintsPerArea')}</h2>
             {areaData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={areaData}>
@@ -118,12 +118,12 @@ export default function Analytics() {
                   <Bar dataKey="count" fill="#3b82f6" />
                 </BarChart>
               </ResponsiveContainer>
-            ) : <p className="text-gray-400 text-sm">No data yet</p>}
+            ) : <p className="text-gray-400 text-sm">{t('noData')}</p>}
           </div>
 
           {/* Complaints per category */}
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h2 className="text-lg font-semibold mb-4">Complaints per Category</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('complaintsPerCategory')}</h2>
             {categoryData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -134,12 +134,12 @@ export default function Analytics() {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
-            ) : <p className="text-gray-400 text-sm">No data yet</p>}
+            ) : <p className="text-gray-400 text-sm">{t('noData')}</p>}
           </div>
 
           {/* Department performance */}
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h2 className="text-lg font-semibold mb-4">Department Performance</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('departmentPerformance')}</h2>
             {deptData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={deptData}>
@@ -147,11 +147,11 @@ export default function Analytics() {
                   <XAxis dataKey="department" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="total" fill="#3b82f6" name="Total" />
-                  <Bar dataKey="resolved" fill="#22c55e" name="Resolved" />
+                  <Bar dataKey="total" fill="#3b82f6" name={t('total')} />
+                  <Bar dataKey="resolved" fill="#22c55e" name={t('resolved')} />
                 </BarChart>
               </ResponsiveContainer>
-            ) : <p className="text-gray-400 text-sm">No data yet</p>}
+            ) : <p className="text-gray-400 text-sm">{t('noData')}</p>}
           </div>
         </>
       )}

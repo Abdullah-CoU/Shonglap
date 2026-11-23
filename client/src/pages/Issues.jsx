@@ -159,11 +159,11 @@ export default function Issues() {
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="text-left px-4 py-3 font-medium text-gray-600">ID</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Category</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Area</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Urgency</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{i18n.language === 'bn' ? '?????' : 'Category'}</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{i18n.language === 'bn' ? '?????' : 'Area'}</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{i18n.language === 'bn' ? '???????' : 'Urgency'}</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{i18n.language === 'bn' ? '?????????' : 'Status'}</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{i18n.language === 'bn' ? '?????' : 'Date'}</th>
             </tr>
           </thead>
           <tbody>
