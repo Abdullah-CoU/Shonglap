@@ -236,12 +236,6 @@ export default function Review() {
               <p className="text-gray-900 font-medium">
                 {routing.primary.nameBn} / {routing.primary.nameEn}
               </p>
-              <p className="text-sm text-gray-600">
-                {t('goesTo', {
-                  dept: routing.primary.nameBn,
-                  reason: extracted.detectedIssue || extracted.category,
-                })}
-              </p>
               {routing.secondary && routing.secondary.length > 0 && (
                 <div className="text-sm text-gray-500">
                   Also: {routing.secondary.map((d) => d.nameBn).join(', ')}
