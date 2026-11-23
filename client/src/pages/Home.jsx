@@ -97,7 +97,7 @@ export default function Home() {
               onClick={() => navigate('/issues?status=in_progress')} />
             <StatCard icon="✓" iconColor="text-orange-600" label="Solved" sub="All time" value={resolved}
               onClick={() => navigate('/issues?status=resolved')} />
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center gap-4 col-span-2 md:col-span-1">
+            <div className="glass rounded-xl p-4 flex items-center gap-4 col-span-2 md:col-span-1">
               <div className="relative w-20 h-20 flex-shrink-0">
                 <svg viewBox="0 0 36 36" className="w-full h-full">
                   <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e5e7eb" strokeWidth="3" />
@@ -127,7 +127,7 @@ export default function Home() {
             >
               📝 {t('reportProblem')}
             </button>
-            <div id="track" className="flex-1 bg-white rounded-xl border border-gray-200 p-3">
+            <div id="track" className="flex-1 glass rounded-xl p-3">
               <form onSubmit={handleTrack} className="flex gap-2 h-full">
                 <input
                   type="text"
@@ -145,7 +145,7 @@ export default function Home() {
           </div>
 
           {/* Total Complaints Chart */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
+          <div className="glass rounded-xl p-4 md:p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-gray-800">Total Complaints</h2>
               <span className="text-xs text-gray-500 border border-gray-200 rounded-lg px-3 py-1">
@@ -174,7 +174,7 @@ export default function Home() {
           {/* Bottom grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Recent Complaints */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
+            <div className="glass rounded-xl p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-gray-800">Recent Complaints</h2>
                 <button onClick={() => navigate('/issues')} className="text-xs text-blue-600 hover:underline">
@@ -217,7 +217,7 @@ export default function Home() {
             </div>
 
             {/* Complaints in Category */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
+            <div className="glass rounded-xl p-4 md:p-6">
               <h2 className="font-semibold text-gray-800 mb-4">Complaints in Category</h2>
               <div className="space-y-4">
                 {categories.map((c) => (
@@ -242,13 +242,13 @@ export default function Home() {
           {critical > 0 && (
             <button
               onClick={() => navigate('/issues?urgency=critical')}
-              className="w-full text-left bg-red-950/50 hover:bg-red-900/60 border border-red-400/40 rounded-xl p-4 flex items-center gap-3 transition-colors text-white"
+              className="w-full text-left bg-red-50/70 hover:bg-red-100/80 border border-red-200 rounded-xl p-4 flex items-center gap-3 transition-colors"
               aria-label="View critical complaints"
             >
               <span className="text-2xl">⚠️</span>
               <div className="flex-1">
-                <p className="font-semibold text-red-100">{critical} critical complaint{critical > 1 ? 's' : ''} need immediate attention</p>
-                <p className="text-sm text-red-200">Gas leaks, live wires, and open manholes are escalated to the highest priority.</p>
+                <p className="font-semibold text-red-800">{critical} critical complaint{critical > 1 ? 's' : ''} need immediate attention</p>
+                <p className="text-sm text-red-600">Gas leaks, live wires, and open manholes are escalated to the highest priority.</p>
               </div>
               <span className="text-red-600 font-medium text-sm whitespace-nowrap">View →</span>
             </button>
@@ -262,17 +262,17 @@ function StatCard({ icon, iconColor, label, sub, value, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="glass-dark rounded-xl p-4 text-left w-full transition-all hover:border-white/40 text-white"
+      className="glass rounded-xl p-4 text-left w-full transition-all hover:border-white/80"
       aria-label={`View ${label} issues`}
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-slate-300">{label}</p>
-          <p className="text-xs text-slate-400">{sub}</p>
+          <p className="text-sm text-gray-600">{label}</p>
+          <p className="text-xs text-gray-500">{sub}</p>
         </div>
         <span className={`text-2xl ${iconColor}`}>{icon}</span>
       </div>
-      <p className="text-3xl font-bold text-white mt-2">{value}</p>
+      <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
     </button>
   );
 }

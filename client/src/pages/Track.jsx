@@ -88,7 +88,7 @@ export default function Track() {
 
         {complaint && (
           <div className="space-y-4">
-            <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+            <div className="glass rounded-lg p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">{t('trackingId')}</span>
                 <code className="font-mono text-sm">{complaint.trackingId}</code>
@@ -117,7 +117,7 @@ export default function Track() {
               )}
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="glass rounded-lg p-4">
               <h2 className="text-lg font-semibold mb-4">{t('timeline')}</h2>
               <div className="space-y-4">
                 {complaint.timeline.map((entry, i) => (

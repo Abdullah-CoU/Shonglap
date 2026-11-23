@@ -33,7 +33,7 @@ export default function CategoryGrid({ selected, onSelect, title }) {
   const isBn = i18n.language === 'bn';
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
+    <div className="glass rounded-xl p-4">
       {title && <h3 className="text-center font-semibold text-blue-900 mb-4">{title}</h3>}
       <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
         {CATEGORIES.map((c) => {

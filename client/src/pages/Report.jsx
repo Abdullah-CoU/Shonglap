@@ -218,7 +218,7 @@ export default function Report() {
         </div>
 
         {/* Voice recorder */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+        <div className="glass rounded-lg p-4 space-y-3">
           <label className="block text-sm font-medium text-gray-700">
             {t('voiceNote')}
           </label>

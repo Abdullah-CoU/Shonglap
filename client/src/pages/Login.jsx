@@ -43,7 +43,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8 space-y-6">
+      <div className="w-full max-w-md glass rounded-xl p-8 space-y-6">
         <h1 className="text-2xl font-bold text-gray-900 text-center">Dashboard Login</h1>
 
         {error && (

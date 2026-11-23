@@ -149,7 +149,7 @@ export default function Review() {
             <p className="font-semibold text-yellow-900">Similar complaints nearby</p>
             <p className="text-sm text-yellow-800">Someone may have already reported this. You can add your support to an existing report or submit a new one.</p>
             {duplicate.slice(0, 3).map((d) => (
-              <div key={d.trackingId} className="bg-white rounded-lg p-3 flex items-center justify-between gap-2">
+              <div key={d.trackingId} className="glass rounded-lg p-3 flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-mono text-xs text-gray-700">{d.trackingId}</p>
                   <p className="text-xs text-gray-500 truncate">{d.description}</p>
@@ -182,7 +182,7 @@ export default function Review() {
         )}
 
         {/* Extracted summary */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+        <div className="glass rounded-lg p-4 space-y-3">
           <h2 className="text-lg font-semibold">{t('extractedSummary')}</h2>
           <div>
             <p className="text-sm text-gray-500">{t('textDescription')}</p>
@@ -234,7 +234,7 @@ export default function Review() {
         </div>
 
         {/* Department */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-2">
+        <div className="glass rounded-lg p-4 space-y-2">
           <h2 className="text-lg font-semibold">{t('department')}</h2>
           {routing.primary ? (
             <>
@@ -260,7 +260,7 @@ export default function Review() {
 
         {/* Follow-up questions */}
         {draft.followUpQuestions && draft.followUpQuestions.length > 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+          <div className="glass rounded-lg p-4 space-y-3">
             <h2 className="text-lg font-semibold">{t('followUp')}</h2>
             {draft.followUpQuestions.map((q, i) => (
               <div key={i}>
@@ -285,7 +285,7 @@ export default function Review() {
         )}
 
         {/* Consent */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="glass rounded-lg p-4">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"

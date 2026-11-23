@@ -126,7 +126,7 @@ export default function Issues() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap gap-3 items-end">
+      <div className="glass rounded-xl p-4 flex flex-wrap gap-3 items-end">
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">{i18n.language === 'bn' ? 'খুঁজুন' : 'Search'}</label>
           <input
@@ -154,7 +154,7 @@ export default function Issues() {
       </div>
 
       {/* Issue list */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+      <div className="glass rounded-xl overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>

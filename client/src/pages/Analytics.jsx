@@ -76,7 +76,7 @@ export default function Analytics() {
         <>
           {/* Summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="glass rounded-lg p-4">
               <p className="text-sm text-gray-500">{t('autoRouteRate')}</p>
               <p className="text-2xl font-bold text-blue-600">
                 {autoRouteData ? (autoRouteData.autoRouteRate * 100).toFixed(1) + '%' : '—'}
@@ -85,7 +85,7 @@ export default function Analytics() {
                 {autoRouteData ? `${autoRouteData.autoRouted}/${autoRouteData.total} ${t('autoRouted')}` : ''}
               </p>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="glass rounded-lg p-4">
               <p className="text-sm text-gray-500">{t('triageRate')}</p>
               <p className="text-2xl font-bold text-orange-600">
                 {autoRouteData ? (autoRouteData.triageRate * 100).toFixed(1) + '%' : '—'}
@@ -94,7 +94,7 @@ export default function Analytics() {
                 {autoRouteData ? `${autoRouteData.triaged}/${autoRouteData.total} ${t('triaged')}` : ''}
               </p>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="glass rounded-lg p-4">
               <p className="text-sm text-gray-500">{t('avgResolutionTime')}</p>
               <p className="text-2xl font-bold text-green-600">
                 {avgResolution ? avgResolution.avgResolutionHours.toFixed(1) + 'h' : '—'}
@@ -106,7 +106,7 @@ export default function Analytics() {
           </div>
 
           {/* Complaints per area */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="glass rounded-lg p-4">
             <h2 className="text-lg font-semibold mb-4">{t('complaintsPerArea')}</h2>
             {areaData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -122,7 +122,7 @@ export default function Analytics() {
           </div>
 
           {/* Complaints per category */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="glass rounded-lg p-4">
             <h2 className="text-lg font-semibold mb-4">{t('complaintsPerCategory')}</h2>
             {categoryData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -138,7 +138,7 @@ export default function Analytics() {
           </div>
 
           {/* Department performance */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="glass rounded-lg p-4">
             <h2 className="text-lg font-semibold mb-4">{t('departmentPerformance')}</h2>
             {deptData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>

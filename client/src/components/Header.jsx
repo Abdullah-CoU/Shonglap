@@ -167,10 +167,10 @@ export default function Header({ compact = false, onMenuClick }) {
             </div>
 
             {searchOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 glass-dark rounded-xl z-50 max-h-[70vh] overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 glass rounded-xl z-50 max-h-[70vh] overflow-y-auto">
                 {/* Popular suggestions */}
-                <div className="px-4 py-3 border-b border-white/15">
-                  <p className="text-sm font-semibold text-white mb-2">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <p className="text-sm font-semibold text-gray-800 mb-2">
                     {i18n.language === 'bn' ? 'জনপ্রিয় অনুসন্ধান' : 'Popular right now'}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -185,7 +185,7 @@ export default function Header({ compact = false, onMenuClick }) {
                           className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
                             active
                               ? 'bg-blue-600 text-white'
-                              : 'bg-white/15 text-slate-100 hover:bg-white/30'
+                              : 'bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700'
                           }`}
                         >
                           {label}
@@ -199,9 +199,9 @@ export default function Header({ compact = false, onMenuClick }) {
                 {query.trim() && (
                   <div>
                     {searchLoading ? (
-                      <p className="px-4 py-3 text-sm text-slate-300">{t('loading')}</p>
+                      <p className="px-4 py-3 text-sm text-gray-600">{t('loading')}</p>
                     ) : results.length === 0 ? (
-                      <p className="px-4 py-3 text-sm text-slate-300">
+                      <p className="px-4 py-3 text-sm text-gray-600">
                         {i18n.language === 'bn' ? 'কোনো ফলাফল নেই' : 'No results found'}
                       </p>
                     ) : (
@@ -209,14 +209,14 @@ export default function Header({ compact = false, onMenuClick }) {
                         <button
                           key={r.trackingId}
                           onClick={() => handleSelect(r.trackingId)}
-                          className="w-full text-left px-4 py-2.5 border-b border-white/15 hover:bg-gray-50 last:border-0"
+                          className="w-full text-left px-4 py-2.5 border-b border-gray-200 hover:bg-gray-50 last:border-0"
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-mono text-xs text-sky-300">{r.trackingId}</span>
-                            <span className="text-xs text-slate-400">{r.status}</span>
+                            <span className="font-mono text-xs text-blue-700">{r.trackingId}</span>
+                            <span className="text-xs text-gray-500">{r.status}</span>
                           </div>
-                          <p className="text-sm text-slate-100 truncate">{r.description}</p>
-                          <p className="text-xs text-slate-400">{r.category} · {r.area}</p>
+                          <p className="text-sm text-gray-700 truncate">{r.description}</p>
+                          <p className="text-xs text-gray-500">{r.category} · {r.area}</p>
                         </button>
                       ))
                     )}
@@ -256,12 +256,12 @@ export default function Header({ compact = false, onMenuClick }) {
               </button>
 
               {notifOpen && (
-                <div className="absolute top-full right-0 mt-1 w-80 glass-dark rounded-lg z-50 max-h-96 overflow-y-auto">
-                  <div className="px-4 py-2 border-b border-white/15 font-semibold text-sm text-gray-800">
+                <div className="absolute top-full right-0 mt-1 w-80 glass rounded-lg z-50 max-h-96 overflow-y-auto">
+                  <div className="px-4 py-2 border-b border-gray-200 font-semibold text-sm text-gray-800">
                     {i18n.language === 'bn' ? 'বিজ্ঞপ্তি' : 'Notifications'} ({unread})
                   </div>
                   {notifications.length === 0 ? (
-                    <p className="px-4 py-6 text-sm text-slate-300 text-center">
+                    <p className="px-4 py-6 text-sm text-gray-600 text-center">
                       {i18n.language === 'bn' ? 'কোনো বিজ্ঞপ্তি নেই' : 'No notifications'}
                     </p>
                   ) : (
@@ -269,16 +269,16 @@ export default function Header({ compact = false, onMenuClick }) {
                       <button
                         key={n.id}
                         onClick={() => { setNotifOpen(false); navigate(`/track/${n.trackingId}`); }}
-                        className="w-full text-left px-4 py-3 border-b border-white/15 hover:bg-gray-50 last:border-0"
+                        className="w-full text-left px-4 py-3 border-b border-gray-200 hover:bg-gray-50 last:border-0"
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-base">
                             {n.type === 'escalation' ? '⚠️' : n.type === 'triage' ? '📋' : n.type === 'critical' ? '🚨' : '📢'}
                           </span>
-                          <span className="font-medium text-sm text-white">{n.title}</span>
+                          <span className="font-medium text-sm text-gray-800">{n.title}</span>
                         </div>
-                        <p className="text-xs text-slate-300 mt-1">{n.message}</p>
-                        <p className="text-xs text-slate-400 mt-1">
+                        <p className="text-xs text-gray-600 mt-1">{n.message}</p>
+                        <p className="text-xs text-gray-500 mt-1">
                           {n.at ? new Date(n.at).toLocaleString() : ''}
                         </p>
                       </button>
@@ -306,9 +306,9 @@ export default function Header({ compact = false, onMenuClick }) {
             </button>
 
             {profileOpen && (
-              <div className="absolute top-full right-0 mt-2 w-56 glass-dark rounded-lg z-50 overflow-hidden">
-                <div className="px-4 py-3 border-b border-white/15">
-                  <p className="text-sm font-semibold text-white truncate">{name}</p>
+              <div className="absolute top-full right-0 mt-2 w-56 glass rounded-lg z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <p className="text-sm font-semibold text-gray-800 truncate">{name}</p>
                   <p className="text-xs text-slate-300 truncate">{authState.user?.email || (i18n.language === 'bn' ? ' Anonymous' : 'Anonymous')}</p>
                   <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{roleLabel}</span>
                 </div>
@@ -316,19 +316,19 @@ export default function Header({ compact = false, onMenuClick }) {
                   <>
                     <button
                       onClick={() => { setProfileOpen(false); navigate(isAdmin() ? '/dashboard/admin' : '/dashboard'); }}
-                      className="w-full text-left px-4 py-2.5 text-sm text-slate-100 hover:bg-white/10"
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                     >
                       ▦ {i18n.language === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard'}
                     </button>
                     <button
                       onClick={() => { setProfileOpen(false); navigate('/track'); }}
-                      className="w-full text-left px-4 py-2.5 text-sm text-slate-100 hover:bg-white/10"
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                     >
                       ⌕ {i18n.language === 'bn' ? 'অভিযোগ ট্র্যাক' : 'Track Complaint'}
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2.5 text-sm text-red-300 hover:bg-red-500/20 border-t border-white/15"
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100"
                     >
                       ⏻ {i18n.language === 'bn' ? 'লগআউট' : 'Logout'}
                     </button>
@@ -336,7 +336,7 @@ export default function Header({ compact = false, onMenuClick }) {
                 ) : (
                   <button
                     onClick={() => { setProfileOpen(false); navigate('/login'); }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-sky-300 hover:bg-white/10"
+                    className="w-full text-left px-4 py-2.5 text-sm text-blue-600 hover:bg-blue-50"
                   >
                     ⏻ {i18n.language === 'bn' ? 'স্টাফ লগইন' : 'Staff Login'}
                   </button>

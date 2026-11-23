@@ -43,7 +43,7 @@ export default function Success() {
         <div className="text-6xl">✅</div>
         <h1 className="text-2xl font-bold text-gray-900">{t('successTitle')}</h1>
 
-        <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
+        <div className="glass rounded-xl p-6 space-y-4">
           <p className="text-sm text-gray-600">{t('trackingId')}</p>
           <div className="flex items-center gap-2">
             <code className="flex-1 bg-gray-100 rounded-lg px-4 py-3 text-lg font-mono text-center">

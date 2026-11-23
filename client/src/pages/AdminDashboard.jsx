@@ -117,8 +117,8 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b border-white/15 border-gray-200 px-4 py-3 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-white">Admin Dashboard</h1>
-          <p className="text-sm text-slate-300">{user?.name}</p>
+          <h1 className="text-lg font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-sm text-gray-600">{user?.name}</p>
         </div>
         <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-800 font-medium">
           Logout
@@ -148,19 +148,19 @@ export default function AdminDashboard() {
         )}
 
         {loading ? (
-          <p className="text-slate-300">Loading...</p>
+          <p className="text-gray-600">Loading...</p>
         ) : (
-          <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+          <div className="glass rounded-lg overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-white/15 border-gray-200">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-slate-300">Tracking ID</th>
-                  <th className="text-left px-4 py-3 font-medium text-slate-300">Category</th>
-                  <th className="text-left px-4 py-3 font-medium text-slate-300">Area</th>
-                  <th className="text-left px-4 py-3 font-medium text-slate-300">Urgency</th>
-                  <th className="text-left px-4 py-3 font-medium text-slate-300">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-slate-300">Department</th>
-                  <th className="text-left px-4 py-3 font-medium text-slate-300">Actions</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Tracking ID</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Category</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Area</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Urgency</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Department</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -196,7 +196,7 @@ export default function AdminDashboard() {
                 })}
                 {(tab === 'triage' ? triageQueue : allComplaints).length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
+                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                       No complaints found.
                     </td>
                   </tr>
@@ -209,7 +209,7 @@ export default function AdminDashboard() {
 
       {selected && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="glass-dark rounded-xl max-w-lg w-full p-6 space-y-4">
+          <div className="glass rounded-xl max-w-lg w-full p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">{selected.trackingId}</h2>
               <button onClick={() => setSelected(null)} className="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
