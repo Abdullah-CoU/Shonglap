@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api.js';
+import ReportModal from '../components/ReportModal.jsx';
 
 const STATUS_COLORS = {
   received: 'bg-blue-100 text-blue-800',
@@ -20,13 +21,14 @@ const URGENCY_COLORS = {
 };
 
 export default function Track() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { trackingId: paramId } = useParams();
   const [trackingId, setTrackingId] = useState(paramId || '');
   const [complaint, setComplaint] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showReport, setShowReport] = useState(false);
 
   const fetchComplaint = async (id) => {
     if (!id) return;
@@ -139,6 +141,14 @@ export default function Track() {
             </div>
           </div>
         )}
+
+        <button
+          onClick={() => setShowReport(true)}
+          className="w-full bg-white hover:bg-gray-50 text-gray-800 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors"
+        >
+          📄 {i18n.language === 'bn' ? 'ফরমাল রিপোর্ট দেখুন' : 'View formal report'}
+        </button>
+        {showReport && complaint && <ReportModal trackingId={complaint.trackingId} onClose={() => setShowReport(false)} />}
 
         <button
           onClick={() => navigate('/')}

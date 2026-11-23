@@ -594,6 +594,27 @@ router.get('/map', async (req, res, next) => {
   }
 });
 
+// GET /api/complaints/:trackingId/report - JSON + minimal formal report
+import { generateReport } from '../services/report.js';
+router.get('/:trackingId/report', async (req, res, next) => {
+  try {
+    const complaint = await Complaint.findOne({ trackingId: req.params.trackingId })
+      .populate('routing.department')
+      .lean();
+    if (!complaint) {
+      return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
+    }
+
+    const result = generateReport(complaint);
+    if (!result.ok) {
+      return res.status(200).json({ ok: false, missing: result.missing });
+    }
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/complaints/track/:trackingId
 router.get('/track/:trackingId', async (req, res, next) => {
   try {

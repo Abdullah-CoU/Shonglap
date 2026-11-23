@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import ReportModal from '../components/ReportModal.jsx';
 
 export default function Success() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [trackingId, setTrackingId] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     const id = sessionStorage.getItem('trackingId');
@@ -62,6 +64,14 @@ export default function Success() {
         >
           {t('viewStatus')}
         </button>
+
+        <button
+          onClick={() => setShowReport(true)}
+          className="w-full bg-white hover:bg-gray-50 text-gray-800 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors"
+        >
+          📄 {i18n.language === 'bn' ? 'ফরমাল রিপোর্ট দেখুন' : 'View formal report'}
+        </button>
+        {showReport && <ReportModal trackingId={trackingId} onClose={() => setShowReport(false)} />}
 
         <button
           onClick={() => navigate('/')}

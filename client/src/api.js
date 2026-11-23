@@ -76,6 +76,9 @@ export const apiClient = {
   /** @param {string} trackingId @returns {Promise<TrackResponse>} */
   trackComplaint: (trackingId) => api.get(`/api/complaints/track/${trackingId}`).then((r) => r.data),
 
+  /** @param {string} trackingId @returns {Promise<{ok:boolean, json:Object, formal:string, missing:string[]}>} */
+  getReport: (trackingId) => api.get(`/api/complaints/${trackingId}/report`).then((r) => r.data),
+
   /** @param {File} audioFile @param {string} language @returns {Promise<TranscribeResponse>} */
   transcribe: (audioFile, language = 'bn') => {
     const form = new FormData();
