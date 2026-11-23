@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { isAuthenticated, getUser, logout, authHeaders } from '../auth.js';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { isAuthenticated, getUser, logout, authHeaders, isAdmin } from '../auth.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 /**
  * Shared header used on every page.
- * App icon + name navigate to Home. Functional search and staff notifications.
+ * App icon + name navigate to Home. Functional search, staff notifications, and profile menu.
  */
-export default function Header({ compact = false }) {
+export default function Header({ compact = false, onMenuClick }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -19,14 +20,22 @@ export default function Header({ compact = false }) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [authState, setAuthState] = useState({ authed: isAuthenticated(), user: getUser() });
   const searchRef = useRef(null);
   const notifRef = useRef(null);
+  const profileRef = useRef(null);
 
-  const authed = isAuthenticated();
-  const user = getUser();
-  const isStaff = authed && (user?.role === 'admin' || user?.role === 'department');
+  const isStaff = authState.authed && (authState.user?.role === 'admin' || authState.user?.role === 'department');
 
   const toggleLang = () => i18n.changeLanguage(i18n.language === 'bn' ? 'en' : 'bn');
+
+  // Re-read auth state whenever the route changes (login/logout navigation)
+  useEffect(() => {
+    setAuthState({ authed: isAuthenticated(), user: getUser() });
+    setProfileOpen(false);
+    setNotifOpen(false);
+  }, [location.pathname]);
 
   // Fetch notifications for staff
   useEffect(() => {
@@ -35,7 +44,7 @@ export default function Header({ compact = false }) {
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => { if (data) setNotifications(data.notifications || []); })
       .catch(() => {});
-  }, [isStaff]);
+  }, [isStaff, location.pathname]);
 
   // Debounced search
   useEffect(() => {
@@ -62,6 +71,7 @@ export default function Header({ compact = false }) {
     const handler = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
       if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -73,11 +83,35 @@ export default function Header({ compact = false }) {
     navigate(`/track/${trackingId}`);
   };
 
+  const handleLogout = () => {
+    logout();
+    setAuthState({ authed: false, user: null });
+    setProfileOpen(false);
+    navigate('/');
+  };
+
   const unread = notifications.length;
+  const name = authState.user?.name || (i18n.language === 'bn' ? 'অতিথি' : 'Guest');
+  const roleLabel = authState.user?.role === 'admin'
+    ? (i18n.language === 'bn' ? 'অ্যাডমিন' : 'Admin')
+    : authState.user?.role === 'department'
+      ? (i18n.language === 'bn' ? 'বিভাগ' : 'Department')
+      : (i18n.language === 'bn' ? 'নাগরিক' : 'Citizen');
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex items-center justify-between gap-3">
+        {/* Mobile hamburger */}
+        {onMenuClick && (
+          <button
+            onClick={onMenuClick}
+            className="md:hidden text-2xl text-gray-700"
+            aria-label="Open menu"
+          >
+            ☰
+          </button>
+        )}
+
         {/* App icon + name — click navigates to Home */}
         <button
           onClick={() => navigate('/')}
@@ -153,7 +187,7 @@ export default function Header({ compact = false }) {
           {isStaff && (
             <div ref={notifRef} className="relative">
               <button
-                onClick={() => setNotifOpen(!notifOpen)}
+                onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
                 className="relative text-lg sm:text-xl"
                 aria-label="Notifications"
               >
@@ -199,17 +233,61 @@ export default function Header({ compact = false }) {
             </div>
           )}
 
-          <button
-            onClick={() => {
-              if (authed) { logout(); navigate('/'); }
-              else navigate('/login');
-            }}
-            className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold"
-            aria-label="Profile"
-            title={authed ? user?.name || 'Logout' : 'Login'}
-          >
-            {authed ? (user?.name?.[0] || 'U') : 'S'}
-          </button>
+          {/* Profile avatar + dropdown */}
+          <div ref={profileRef} className="relative">
+            <button
+              onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
+              className="flex items-center gap-2 rounded-full hover:opacity-80 transition-opacity"
+              aria-label="Profile menu"
+              aria-expanded={profileOpen}
+              title={name}
+            >
+              <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold text-white ${
+                authState.user?.role === 'admin' ? 'bg-purple-600' : authState.user?.role === 'department' ? 'bg-blue-600' : 'bg-gray-500'
+              }`}>
+                {name[0]?.toUpperCase() || 'G'}
+              </span>
+            </button>
+
+            {profileOpen && (
+              <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="text-sm font-semibold text-gray-800 truncate">{name}</p>
+                  <p className="text-xs text-gray-500 truncate">{authState.user?.email || (i18n.language === 'bn' ? ' Anonymous' : 'Anonymous')}</p>
+                  <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{roleLabel}</span>
+                </div>
+                {authState.authed ? (
+                  <>
+                    <button
+                      onClick={() => { setProfileOpen(false); navigate(isAdmin() ? '/dashboard/admin' : '/dashboard'); }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      ▦ {i18n.language === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard'}
+                    </button>
+                    <button
+                      onClick={() => { setProfileOpen(false); navigate('/track'); }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      ⌕ {i18n.language === 'bn' ? 'অভিযোগ ট্র্যাক' : 'Track Complaint'}
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100"
+                    >
+                      ⏻ {i18n.language === 'bn' ? 'লগআউট' : 'Logout'}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => { setProfileOpen(false); navigate('/login'); }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-blue-600 hover:bg-blue-50"
+                  >
+                    ⏻ {i18n.language === 'bn' ? 'স্টাফ লগইন' : 'Staff Login'}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
