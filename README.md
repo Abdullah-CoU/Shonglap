@@ -24,6 +24,68 @@ Shonglap is a MERN civic complaint portal for Dhaka, Bangladesh. Citizens can re
 | Data | MongoDB 7 (Docker bind mount) |
 | Testing | Jest, Supertest, mongodb-memory-server, Playwright |
 
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Client["Client (React + Vite)"]
+      C1[Citizen Pages<br/>Home/Report/Review/Track/Issues/Analytics]
+      C2[Staff Pages<br/>Login/Department Dashboard/Admin Dashboard]
+    end
+
+    subgraph API["Backend (Express API)"]
+      MW[Helmet/CORS/Cookies<br/>Rate Limit + Zod Validation<br/>JWT HttpOnly Auth + RBAC]
+      R[Routes<br/>auth/complaints/transcribe/analyze-photo<br/>departments/admin/analytics/notifications]
+      S[Service Layer]
+    end
+
+    subgraph CORE["Core Services"]
+      EX[Extraction]
+      RT[Hybrid Routing<br/>rules → jurisdiction → LLM → triage]
+      TR[Transcription Adapter<br/>gemini/openai/whispercpp/sidecar]
+      VS[Vision/Photo Analysis]
+      RP[Report Generation]
+      NT[Notifications + SLA]
+    end
+
+    subgraph Data["Data & Files"]
+      DB[(MongoDB)]
+      FS[/uploads/ audio+photos/]
+    end
+
+    subgraph Ext["External/Optional"]
+      GM[Gemini API]
+      CL[Claude API]
+      SM[SMTP]
+      WS[Whisper Sidecar]
+    end
+
+    C1 -->|HTTPS/JSON + cookies| MW
+    C2 -->|HTTPS/JSON + cookies| MW
+    MW --> R --> S
+    S --> EX
+    S --> RT
+    S --> TR
+    S --> VS
+    S --> RP
+    S --> NT
+    EX --> CL
+    RT --> CL
+    VS --> CL
+    TR --> GM
+    TR --> WS
+    NT --> SM
+    S --> DB
+    R --> FS
+```
+
+### Request/Processing Flow
+
+1. **Citizen submits report**: client sends text/voice/photo/area. API validates input, stores media, transcribes audio (provider adapter), extracts structured fields, runs hybrid routing, and saves draft/complaint.
+2. **Routing decision**: rule-based keywords and jurisdiction resolve obvious cases; ambiguous cases can use LLM; low confidence/spam goes to triage. Department assignment is stored with status log.
+3. **Staff operations**: authenticated staff access role-scoped APIs. Department users only see/update their own complaints; admins triage/assign/reroute.
+4. **Tracking & outputs**: citizens track by tracking ID, receive status updates/notifications, and can generate JSON/formal report output.
+
 ## Project Structure
 
 ```text
