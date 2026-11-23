@@ -14,25 +14,20 @@ export default function Review() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const [draft, setDraft] = useState(null);
+  const storedDraft = typeof window !== 'undefined' ? sessionStorage.getItem('draftData') : null;
+  const initialDraft = storedDraft ? JSON.parse(storedDraft) : null;
+  const [draft, setDraft] = useState(initialDraft);
   const [answers, setAnswers] = useState({});
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
-  const [editedText, setEditedText] = useState('');
+  const [editedText, setEditedText] = useState(initialDraft?.extracted?.description || '');
   const [duplicate, setDuplicate] = useState([]);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem('draftData');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      setDraft(parsed);
-      setEditedText(parsed.extracted?.description || '');
-    } else {
-      navigate('/report');
-    }
-  }, [navigate]);
+    if (!draft) navigate('/report');
+  }, [draft, navigate]);
 
   const handleAnswerSubmit = async () => {
     if (!draft) return;

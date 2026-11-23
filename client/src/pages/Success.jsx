@@ -4,20 +4,15 @@ import { useTranslation } from 'react-i18next';
 import ReportModal from '../components/ReportModal.jsx';
 
 export default function Success() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [trackingId, setTrackingId] = useState('');
+  const [trackingId] = useState(() => sessionStorage.getItem('trackingId') || '');
   const [copied, setCopied] = useState(false);
   const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
-    const id = sessionStorage.getItem('trackingId');
-    if (id) {
-      setTrackingId(id);
-    } else {
-      navigate('/');
-    }
-  }, [navigate]);
+    if (!trackingId) navigate('/');
+  }, [navigate, trackingId]);
 
   const handleCopy = async () => {
     try {

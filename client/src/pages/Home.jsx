@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -27,11 +27,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [markers, setMarkers] = useState([]);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/complaints/map`);
       const data = await res.json();
@@ -39,7 +35,11 @@ export default function Home() {
     } catch {
       // silently fail
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleTrack = async (e) => {
     e.preventDefault();

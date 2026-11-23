@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api.js';
@@ -16,7 +16,7 @@ export default function Report() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [text, setText] = useState('');
+  const [text, setText] = useState(() => (location.state?.category ? `[${location.state.category.keyword}]` : ''));
   const [transcript, setTranscript] = useState('');
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -33,14 +33,6 @@ export default function Report() {
   const [transcribing, setTranscribing] = useState(false);
   const [privacyBlur, setPrivacyBlur] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(location.state?.category?.key || null);
-
-  // Pre-fill text when arriving from the home category grid
-  useEffect(() => {
-    const cat = location.state?.category;
-    if (cat) {
-      setText(`[${cat.keyword}]`);
-    }
-  }, [location.state]);
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -70,10 +62,10 @@ export default function Report() {
       setRecording(true);
       setTranscript('');
       setAudioPath('');
-    } catch (err) {
+    } catch {
       setError(t('micDenied'));
     }
-  }, []);
+  }, [t]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && recording) {

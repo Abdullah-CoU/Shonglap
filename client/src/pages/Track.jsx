@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api.js';
@@ -21,7 +21,7 @@ const URGENCY_COLORS = {
 };
 
 export default function Track() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { trackingId: paramId } = useParams();
   const [trackingId, setTrackingId] = useState(paramId || '');
@@ -30,7 +30,7 @@ export default function Track() {
   const [error, setError] = useState('');
   const [showReport, setShowReport] = useState(false);
 
-  const fetchComplaint = async (id) => {
+  const fetchComplaint = useCallback(async (id) => {
     if (!id) return;
     setLoading(true);
     setError('');
@@ -43,13 +43,13 @@ export default function Track() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     if (paramId) {
       fetchComplaint(paramId);
     }
-  }, [paramId]);
+  }, [paramId, fetchComplaint]);
 
   const handleTrack = (e) => {
     e.preventDefault();

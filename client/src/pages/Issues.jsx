@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -46,11 +46,7 @@ export default function Issues() {
     setUrgencyFilter(initialUrgency);
   }, [initialFilter, initialUrgency]);
 
-  useEffect(() => {
-    fetchComplaints();
-  }, []);
-
-  const fetchComplaints = async () => {
+  const fetchComplaints = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/complaints/map`);
@@ -61,7 +57,11 @@ export default function Issues() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchComplaints();
+  }, [fetchComplaints]);
 
   const filtered = complaints.filter((c) => {
     if (filter !== 'all' && FILTER_DEFS[filter] && !FILTER_DEFS[filter].statuses.includes(c.status)) return false;

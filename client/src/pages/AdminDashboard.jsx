@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { isAuthenticated, getUser, logout } from '../auth.js';
@@ -29,15 +29,7 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState('triage');
 
-  useEffect(() => {
-    if (!isAuthenticated() || user?.role !== 'admin') {
-      navigate('/login');
-      return;
-    }
-    fetchAll();
-  }, []);
-
-  const fetchAll = async () => {
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -64,7 +56,15 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated() || user?.role !== 'admin') {
+      navigate('/login');
+      return;
+    }
+    fetchAll();
+  }, [navigate, user?.role, fetchAll]);
 
   const handleAssign = async (complaintId) => {
     if (!assignDept) return;

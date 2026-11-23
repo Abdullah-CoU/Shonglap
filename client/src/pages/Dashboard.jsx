@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { isAuthenticated, getUser, logout } from '../auth.js';
-import apiClient from '../api.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -33,15 +32,7 @@ export default function Dashboard() {
   const [filters, setFilters] = useState({ urgency: '', status: '', area: '' });
   const [selected, setSelected] = useState(null);
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate('/login');
-      return;
-    }
-    fetchComplaints();
-  }, []);
-
-  const fetchComplaints = async () => {
+  const fetchComplaints = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -61,7 +52,15 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, t]);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+    fetchComplaints();
+  }, [navigate, fetchComplaints]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -71,8 +70,8 @@ export default function Dashboard() {
     fetchComplaints();
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
