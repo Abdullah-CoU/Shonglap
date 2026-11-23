@@ -509,22 +509,46 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
 });
 
 // GET /api/complaints/search?q=... - public search by tracking ID, area, category, description
+// Bangla ↔ English term map so searches work in either language
+const SEARCH_TERM_MAP = {
+  'গর্ত': 'pothole', 'রাস্তা': 'road', 'ময়লা': 'garbage', 'আবর্জনা': 'waste',
+  'মশা': 'mosquito', 'ডেঙ্গু': 'dengue', 'বাতি': 'streetlight', 'পানি': 'water',
+  'জলাবদ্ধতা': 'waterlogging', 'ড্রেন': 'drain', 'বিদ্যুৎ': 'electricity',
+  'গ্যাস': 'gas', 'ট্রাফিক': 'traffic', 'জ্যাম': 'jam', 'অবৈধ নির্মাণ': 'construction',
+  'ভবন': 'building', 'নির্মাণ': 'construction', 'আগুন': 'fire', 'দূষণ': 'pollution',
+  'গুলশান': 'gulshan', 'ধানমন্ডি': 'dhanmondi', 'মিরপুর': 'mirpur', 'উত্তরা': 'uttara',
+  'বনানী': 'banani', 'মতিঝিল': 'motijheel', 'যাত্রাবাড়ী': 'jatrabari', 'পুরান ঢাকা': 'old dhaka',
+  'মোহাম্মদপুর': 'mohammadpur', 'তেজগাঁও': 'tejgaon', 'বারিধারা': 'baridhara',
+};
+
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 router.get('/search', async (req, res, next) => {
   try {
     const q = (req.query.q || '').trim();
     if (!q) return res.status(200).json({ results: [] });
 
-    const filter = {
-      $or: [
-        { trackingId: new RegExp(q, 'i') },
-        { area: new RegExp(q, 'i') },
-        { category: new RegExp(q, 'i') },
-        { description: new RegExp(q, 'i') },
-        { descriptionBn: new RegExp(q, 'i') },
-      ],
-    };
+    // Try original query plus mapped English/Bangla equivalents
+    const lower = q.toLowerCase();
+    const terms = [q];
+    for (const [bn, en] of Object.entries(SEARCH_TERM_MAP)) {
+      if (bn === q || lower === bn) terms.push(en);
+      if (en === lower || q.toLowerCase() === en) terms.push(bn);
+    }
 
-    const results = await Complaint.find(filter)
+    const orClauses = [];
+    for (const term of terms) {
+      const t = escapeRegex(term);
+      orClauses.push(
+        { trackingId: new RegExp(t, 'i') },
+        { area: new RegExp(t, 'i') },
+        { category: new RegExp(t, 'i') },
+        { description: new RegExp(t, 'i') },
+        { descriptionBn: new RegExp(t, 'i') },
+      );
+    }
+
+    const results = await Complaint.find({ $or: orClauses })
       .select('trackingId category area description status urgency createdAt')
       .sort({ createdAt: -1 })
       .limit(10)
