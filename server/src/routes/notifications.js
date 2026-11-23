@@ -2,6 +2,7 @@ import express from 'express';
 import { Complaint } from '../models/Complaint.js';
 import { requireAuth, requireRole, loadUser } from '../middleware/auth.js';
 import { logger } from '../utils/logger.js';
+import { User } from '../models/User.js';
 
 const router = express.Router();
 
@@ -92,9 +93,41 @@ router.get('/', requireAuth, requireRole('department', 'admin'), loadUser, async
       .lean();
 
     const notifications = buildNotifications(complaints, role);
-    res.status(200).json({ notifications, unread: notifications.length });
+    const read = new Set(user.readNotifications || []);
+    const withRead = notifications.map((n) => ({ ...n, read: read.has(String(n.id)) }));
+    const unread = withRead.filter((n) => !n.read).length;
+    res.status(200).json({ notifications: withRead, unread });
   } catch (err) {
     logger.error({ err: err.message }, 'Failed to build notifications');
+    next(err);
+  }
+});
+
+// POST /api/notifications/read - mark specific (or all) notifications as read
+router.post('/read', requireAuth, requireRole('department', 'admin'), loadUser, async (req, res, next) => {
+  try {
+    const { ids } = req.body || {};
+    const user = req.dbUser;
+    const filter = {};
+    if (user.role === 'department' && user.department) filter['routing.department'] = user.department._id;
+
+    const complaints = await Complaint.find(filter)
+      .select('trackingId category area urgency status createdAt statusLog')
+      .sort({ createdAt: -1 }).limit(100).lean();
+    const allIds = buildNotifications(complaints, user.role).map((n) => String(n.id));
+
+    const toMark = Array.isArray(ids) && ids.length > 0
+      ? ids.filter((id) => allIds.includes(String(id)))
+      : allIds; // no ids = mark all
+
+    const updated = await User.findByIdAndUpdate(
+      user._id,
+      { $addToSet: { readNotifications: { $each: toMark.map(String) } } },
+      { new: true }
+    ).lean();
+
+    res.status(200).json({ ok: true, unread: 0, readCount: (updated.readNotifications || []).length });
+  } catch (err) {
     next(err);
   }
 });

@@ -37,6 +37,7 @@ export default function Header({ compact = false, onMenuClick }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [authState, setAuthState] = useState({ authed: isAuthenticated(), user: getUser() });
@@ -60,7 +61,7 @@ export default function Header({ compact = false, onMenuClick }) {
     if (!isStaff) return;
     fetch(`${API_BASE}/api/notifications`, { headers: authHeaders() })
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => { if (data) setNotifications(data.notifications || []); })
+      .then((data) => { if (data) { setNotifications(data.notifications || []); setUnreadCount(data.unread || 0); } })
       .catch(() => {});
   }, [isStaff, location.pathname]);
 
@@ -114,7 +115,27 @@ export default function Header({ compact = false, onMenuClick }) {
     navigate('/');
   };
 
-  const unread = notifications.length;
+  const unread = unreadCount;
+
+  const handleNotifToggle = () => {
+    const next = !notifOpen;
+    setNotifOpen(next);
+    setProfileOpen(false);
+    if (next && unreadCount > 0) {
+      // Mark all as read once the user opens the dropdown
+      fetch(`${API_BASE}/api/notifications/read`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ ids: [] }),
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then(() => {
+          setUnreadCount(0);
+          setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+        })
+        .catch(() => {});
+    }
+  };
   const name = authState.user?.name || (i18n.language === 'bn' ? 'অতিথি' : 'Guest');
   const roleLabel = authState.user?.role === 'admin'
     ? (i18n.language === 'bn' ? 'অ্যাডমিন' : 'Admin')
@@ -243,7 +264,7 @@ export default function Header({ compact = false, onMenuClick }) {
           {isStaff && (
             <div ref={notifRef} className="relative">
               <button
-                onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
+                onClick={handleNotifToggle}
                 className="relative text-lg sm:text-xl"
                 aria-label="Notifications"
               >
