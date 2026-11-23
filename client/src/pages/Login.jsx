@@ -25,7 +25,7 @@ export default function Login() {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error?.message || 'Login failed');
+        throw new Error(data.error?.message || t('loginFailed'));
       }
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
@@ -44,7 +44,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md glass rounded-xl p-8 space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900 text-center">Dashboard Login</h1>
+        <h1 className="text-2xl font-bold text-gray-900 text-center">{t('staffLogin')}</h1>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">

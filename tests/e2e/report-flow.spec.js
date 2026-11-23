@@ -30,10 +30,13 @@ test('citizen report flow', async ({ page }) => {
   await page.waitForTimeout(1000);
 
   // If duplicate modal appeared, submit as new complaint
-  const submitNew = page.locator('button').filter({ hasText: 'Submit as new' });
-  if (await submitNew.count() > 0) {
-    await submitNew.click();
-  }
+  const submitNew = page.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('button')).find(
+      (b) => b.textContent.includes('Submit as new') || b.textContent.includes('নতুন অভিযোগ হিসেবে')
+    );
+    if (btn) { btn.click(); return true; }
+    return false;
+  });
 
   await page.waitForURL(/\/success/, { timeout: 15000 });
 

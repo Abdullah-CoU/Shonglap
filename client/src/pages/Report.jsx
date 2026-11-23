@@ -71,7 +71,7 @@ export default function Report() {
       setTranscript('');
       setAudioPath('');
     } catch (err) {
-      setError('Microphone access denied or unavailable.');
+      setError(t('micDenied'));
     }
   }, []);
 

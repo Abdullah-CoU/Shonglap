@@ -54,7 +54,7 @@ export default function Dashboard() {
         headers: authHeaders(),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message || 'Failed');
+      if (!res.ok) throw new Error(data.error?.message || t('loadFailed'));
       setComplaints(data.complaints || []);
     } catch (err) {
       setError(err.message);
@@ -191,7 +191,7 @@ export default function Dashboard() {
                         onClick={() => setSelected(c)}
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                       >
-                        View
+                        {t('viewAll')}
                       </button>
                     </td>
                   </tr>
@@ -199,7 +199,7 @@ export default function Dashboard() {
                 {complaints.length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                      No complaints found.
+                      {t('noComplaints')}
                     </td>
                   </tr>
                 )}
@@ -293,7 +293,7 @@ function ComplaintDetail({ complaint, onClose, onRefresh }) {
           <div>
             <h3 className="font-semibold mb-2">Location</h3>
             <a href={mapLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
-              View on Map
+              {t('viewAll')} on Map
             </a>
           </div>
         )}

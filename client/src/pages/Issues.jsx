@@ -93,7 +93,7 @@ export default function Issues() {
           onClick={() => navigate('/')}
           className="text-sm text-blue-600 hover:underline"
         >
-          ← {i18n.language === 'bn' ? 'হোম' : 'Home'}
+          ← {t('home')}
         </button>
       </div>
 
@@ -121,33 +121,33 @@ export default function Issues() {
             urgencyFilter === 'critical' ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
           }`}
         >
-          ⚠️ {i18n.language === 'bn' ? 'জরুরি' : 'Critical'}
+          ⚠️ {t('critical')}
         </button>
       </div>
 
       {/* Filters */}
       <div className="glass rounded-xl p-4 flex flex-wrap gap-3 items-end">
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">{i18n.language === 'bn' ? 'খুঁজুন' : 'Search'}</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">{t('search')}</label>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={i18n.language === 'bn' ? 'আইডি বা বিবরণ...' : 'ID or description...'}
+            placeholder={t('searchPlaceholder')}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-48"
           />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">{i18n.language === 'bn' ? 'বিভাগ' : 'Category'}</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-            <option value="">{i18n.language === 'bn' ? 'সব' : 'All'}</option>
+            <option value="">{t('all')}</option>
             {categories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">{i18n.language === 'bn' ? 'এলাকা' : 'Area'}</label>
           <select value={area} onChange={(e) => setArea(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-            <option value="">{i18n.language === 'bn' ? 'সব' : 'All'}</option>
+            <option value="">{t('all')}</option>
             {areas.map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
         </div>
@@ -158,12 +158,12 @@ export default function Issues() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">ID</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">{i18n.language === 'bn' ? '?????' : 'Category'}</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">{i18n.language === 'bn' ? '?????' : 'Area'}</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">{i18n.language === 'bn' ? '???????' : 'Urgency'}</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">{i18n.language === 'bn' ? '?????????' : 'Status'}</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">{i18n.language === 'bn' ? '?????' : 'Date'}</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{t('id')}</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{t('category')}</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{t('areaCol')}</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{t('urgencyCol')}</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{t('statusCol')}</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{t('date')}</th>
             </tr>
           </thead>
           <tbody>
@@ -187,7 +187,7 @@ export default function Issues() {
             ))}
             {filtered.length === 0 && (
               <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">
-                {loading ? 'Loading...' : (i18n.language === 'bn' ? 'কোনো অভিযোগ নেই' : 'No complaints found')}
+                {loading ? t('loading') : t('noComplaints')}
               </td></tr>
             )}
           </tbody>

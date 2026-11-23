@@ -106,8 +106,8 @@ export default function Home() {
                 <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-800">{serviceLevel}%</div>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Service Level</p>
-                <p className="text-xs text-gray-400">Target 75%</p>
+                <p className="text-sm text-gray-500">{t('serviceLevel')}</p>
+                <p className="text-xs text-gray-400">{t('target75')}</p>
               </div>
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function Home() {
           {/* Total Complaints Chart */}
           <div className="glass rounded-xl p-4 md:p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-gray-800">Total Complaints</h2>
+              <h2 className="font-semibold text-gray-800">{t('totalComplaints')}</h2>
               <span className="text-xs text-gray-500 border border-gray-200 rounded-lg px-3 py-1">
                 {total} records
               </span>
@@ -178,7 +178,7 @@ export default function Home() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-gray-800">Recent Complaints</h2>
                 <button onClick={() => navigate('/issues')} className="text-xs text-blue-600 hover:underline">
-                  View all →
+                  {t('viewAll')} →
                 </button>
               </div>
               <div className="overflow-x-auto">
@@ -209,7 +209,7 @@ export default function Home() {
                       </tr>
                     ))}
                     {markers.length === 0 && (
-                      <tr><td colSpan={4} className="py-6 text-center text-gray-400">No complaints yet</td></tr>
+                      <tr><td colSpan={4} className="py-6 text-center text-gray-400">{t('noComplaintsYet')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -232,7 +232,7 @@ export default function Home() {
                   </div>
                 ))}
                 {categories.length === 0 && (
-                  <p className="text-gray-400 text-sm text-center py-6">No category data yet</p>
+                  <p className="text-gray-400 text-sm text-center py-6">{t('noCategoryData')}</p>
                 )}
               </div>
             </div>

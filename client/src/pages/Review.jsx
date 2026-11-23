@@ -63,7 +63,7 @@ export default function Review() {
 
   const handleSubmit = async () => {
     if (!consent) {
-      setError('Please check the consent box.');
+      setError(t('consentRequired'));
       return;
     }
     setLoading(true);
@@ -146,7 +146,7 @@ export default function Review() {
 
         {duplicate.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 space-y-3">
-            <p className="font-semibold text-yellow-900">Similar complaints nearby</p>
+            <p className="font-semibold text-yellow-900">{t('similarComplaints')}</p>
             <p className="text-sm text-yellow-800">Someone may have already reported this. You can add your support to an existing report or submit a new one.</p>
             {duplicate.slice(0, 3).map((d) => (
               <div key={d.trackingId} className="glass rounded-lg p-3 flex items-center justify-between gap-2">
@@ -159,7 +159,7 @@ export default function Review() {
                   onClick={() => handleSupport(d.trackingId)}
                   className="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white text-xs font-medium py-2 px-3 rounded-lg"
                 >
-                  +1 Support
+                  '+' + t('supportThis')
                 </button>
               </div>
             ))}
@@ -167,7 +167,7 @@ export default function Review() {
               onClick={handleSubmitAnyway}
               className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium py-2 px-3 rounded-lg"
             >
-              Submit as new complaint
+              {t('submitAsNew')}
             </button>
           </div>
         )}

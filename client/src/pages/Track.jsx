@@ -69,6 +69,7 @@ export default function Track() {
             value={trackingId}
             onChange={(e) => setTrackingId(e.target.value)}
             placeholder={t('enterTrackingId')}
+            aria-label={t('trackById')}
             className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <button
@@ -146,7 +147,7 @@ export default function Track() {
           onClick={() => setShowReport(true)}
           className="w-full bg-white hover:bg-gray-50 text-gray-800 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors"
         >
-          📄 {i18n.language === 'bn' ? 'ফরমাল রিপোর্ট দেখুন' : 'View formal report'}
+          📄 {t('formalReport')}
         </button>
         {showReport && complaint && <ReportModal trackingId={complaint.trackingId} onClose={() => setShowReport(false)} />}
 
@@ -154,7 +155,7 @@ export default function Track() {
           onClick={() => navigate('/')}
           className="w-full bg-white hover:bg-gray-50 text-gray-800 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors"
         >
-          Home
+          {t('home')}
         </button>
       </div>
     </div>

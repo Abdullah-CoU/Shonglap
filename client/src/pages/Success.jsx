@@ -69,7 +69,7 @@ export default function Success() {
           onClick={() => setShowReport(true)}
           className="w-full bg-white hover:bg-gray-50 text-gray-800 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors"
         >
-          📄 {i18n.language === 'bn' ? 'ফরমাল রিপোর্ট দেখুন' : 'View formal report'}
+          📄 {t('formalReport')}
         </button>
         {showReport && <ReportModal trackingId={trackingId} onClose={() => setShowReport(false)} />}
 
@@ -77,7 +77,7 @@ export default function Success() {
           onClick={() => navigate('/')}
           className="w-full bg-white hover:bg-gray-50 text-gray-800 font-medium py-3 px-4 rounded-lg border border-gray-300 transition-colors"
         >
-          Home
+          {t('home')}
         </button>
       </div>
     </div>

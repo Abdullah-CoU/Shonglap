@@ -43,7 +43,7 @@ export default function Analytics() {
       if (deptRes.ok) setDeptData((await deptRes.json()).data || []);
       if (autoRes.ok) setAutoRouteData((await autoRes.json()).data);
       if (resRes.ok) setAvgResolution((await resRes.json()).data);
-      if (!areaRes.ok && !catRes.ok && !autoRes.ok) throw new Error('Failed to load analytics');
+      if (!areaRes.ok && !catRes.ok && !autoRes.ok) throw new Error(t('loadFailed'));
     } catch (err) {
       setError(err.message);
     } finally {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { isAuthenticated, getUser, logout, authHeaders } from '../auth.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -13,6 +14,7 @@ const URGENCY_COLORS = {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const user = getUser();
 
   const [triageQueue, setTriageQueue] = useState([]);
@@ -197,7 +199,7 @@ export default function AdminDashboard() {
                 {(tab === 'triage' ? triageQueue : allComplaints).length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                      No complaints found.
+                      {t('noComplaints')}
                     </td>
                   </tr>
                 )}
