@@ -9,11 +9,12 @@ import { logger } from '../utils/logger.js';
  */
 export async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  const cookieToken = req.cookies?.token;
+  const token = cookieToken || bearerToken;
+  if (!token) {
     return res.status(401).json({ error: { message: 'Authentication required', status: 401 } });
   }
-
-  const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET);
     req.user = decoded;

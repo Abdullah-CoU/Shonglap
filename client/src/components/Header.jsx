@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { isAuthenticated, getUser, logout, authHeaders, isAdmin } from '../auth.js';
+import { isAuthenticated, getUser, logout, isAdmin } from '../auth.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -59,7 +59,7 @@ export default function Header({ compact = false, onMenuClick }) {
   // Fetch notifications for staff
   useEffect(() => {
     if (!isStaff) return;
-    fetch(`${API_BASE}/api/notifications`, { headers: authHeaders() })
+    fetch(`${API_BASE}/api/notifications`, { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => { if (data) { setNotifications(data.notifications || []); setUnreadCount(data.unread || 0); } })
       .catch(() => {});
@@ -108,7 +108,7 @@ export default function Header({ compact = false, onMenuClick }) {
     // Keep dropdown open so results appear after debounce
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     logout();
     setAuthState({ authed: false, user: null });
     setProfileOpen(false);
@@ -125,7 +125,8 @@ export default function Header({ compact = false, onMenuClick }) {
       // Mark all as read once the user opens the dropdown
       fetch(`${API_BASE}/api/notifications/read`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ ids: [] }),
       })
         .then((r) => (r.ok ? r.json() : null))

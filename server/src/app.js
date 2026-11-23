@@ -3,6 +3,7 @@ import { join } from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
+import cookieParser from 'cookie-parser';
 import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 import transcribeRouter from './routes/transcribe.js';
@@ -16,10 +17,26 @@ import notificationsRouter from './routes/notifications.js';
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: env.CORS_ORIGIN }));
+app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(pinoHttp({ logger }));
+
+// Basic CSRF guard for cookie-authenticated mutating requests
+app.use((req, res, next) => {
+  const unsafe = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
+  const hasCookieToken = Boolean(req.cookies?.token);
+  const hasBearer = req.headers.authorization?.startsWith('Bearer ');
+  if (unsafe && hasCookieToken && !hasBearer) {
+    const origin = req.headers.origin;
+    const allowed = String(env.CORS_ORIGIN).split(',').map((s) => s.trim()).filter(Boolean);
+    if (origin && !allowed.includes(origin)) {
+      return res.status(403).json({ error: { message: 'Invalid request origin', status: 403 } });
+    }
+  }
+  next();
+});
 
 // Serve uploaded files (photos, audio)
 app.use('/uploads', express.static(join(process.cwd(), 'uploads')));

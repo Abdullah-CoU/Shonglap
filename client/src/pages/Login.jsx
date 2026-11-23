@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import apiClient from '../api.js';
+import { setUser } from '../auth.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -21,14 +21,14 @@ export default function Login() {
       const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error?.message || t('loginFailed'));
       }
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      setUser(data.user);
       if (data.user.role === 'admin') {
         navigate('/dashboard/admin');
       } else {

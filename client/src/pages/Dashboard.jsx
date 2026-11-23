@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { isAuthenticated, getUser, logout, authHeaders } from '../auth.js';
+import { isAuthenticated, getUser, logout } from '../auth.js';
 import apiClient from '../api.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -51,7 +51,7 @@ export default function Dashboard() {
       if (filters.area) params.set('area', filters.area);
 
       const res = await fetch(`${API_BASE}/api/departments/complaints?${params}`, {
-        headers: authHeaders(),
+        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error?.message || t('loadFailed'));
@@ -228,7 +228,8 @@ function ComplaintDetail({ complaint, onClose, onRefresh }) {
     try {
       const res = await fetch(`${API_BASE}/api/departments/complaints/${complaint._id}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ status, note }),
       });
       if (!res.ok) throw new Error('Update failed');

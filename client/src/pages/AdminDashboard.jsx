@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { isAuthenticated, getUser, logout, authHeaders } from '../auth.js';
+import { isAuthenticated, getUser, logout } from '../auth.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -42,9 +42,9 @@ export default function AdminDashboard() {
     setError('');
     try {
       const [triageRes, complaintsRes, deptsRes] = await Promise.all([
-        fetch(`${API_BASE}/api/admin/triage`, { headers: authHeaders() }),
-        fetch(`${API_BASE}/api/admin/complaints`, { headers: authHeaders() }),
-        fetch(`${API_BASE}/api/departments`, { headers: authHeaders() }),
+        fetch(`${API_BASE}/api/admin/triage` , { credentials: 'include' }),
+        fetch(`${API_BASE}/api/admin/complaints` , { credentials: 'include' }),
+        fetch(`${API_BASE}/api/departments` , { credentials: 'include' }),
       ]);
 
       if (triageRes.ok) {
@@ -72,7 +72,8 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`${API_BASE}/api/admin/complaints/${complaintId}/assign`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ departmentId: assignDept, note }),
       });
       if (!res.ok) throw new Error('Assign failed');
@@ -93,7 +94,8 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`${API_BASE}/api/admin/complaints/${complaintId}/reroute`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ newDepartmentId: rerouteDept, note }),
       });
       if (!res.ok) throw new Error('Reroute failed');

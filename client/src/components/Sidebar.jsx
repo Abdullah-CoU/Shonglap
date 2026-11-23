@@ -43,8 +43,8 @@ export default function Sidebar({ open, onClose }) {
     return location.pathname.startsWith(item.path);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     go('/');
   };
 

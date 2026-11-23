@@ -35,6 +35,15 @@ const toPublicUser = (u) => ({
     : null,
 });
 
+const TOKEN_COOKIE = 'token';
+const cookieOptions = () => ({
+  httpOnly: true,
+  secure: env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  maxAge: 24 * 60 * 60 * 1000,
+  path: '/',
+});
+
 const signToken = (user) => jwt.sign(
   { id: user._id, email: user.email, role: user.role, department: user.department?._id },
   env.JWT_SECRET,
@@ -63,7 +72,9 @@ router.post('/login', loginLimiter, validate(loginSchema), async (req, res, next
 
     logger.info({ email, role: user.role, department: user.department?.nameEn }, 'User logged in');
 
-    res.status(200).json({ token: signToken(user), user: toPublicUser(user) });
+    const token = signToken(user);
+    res.cookie(TOKEN_COOKIE, token, cookieOptions());
+    res.status(200).json({ token, user: toPublicUser(user) });
   } catch (err) {
     next(err);
   }
@@ -72,6 +83,12 @@ router.post('/login', loginLimiter, validate(loginSchema), async (req, res, next
 // GET /api/auth/me — verify current session
 router.get('/me', requireAuth, (req, res) => {
   res.status(200).json({ user: toPublicUser(req.dbUser) });
+});
+
+// POST /api/auth/logout — clear auth cookie
+router.post('/logout', (req, res) => {
+  res.clearCookie(TOKEN_COOKIE, { ...cookieOptions(), maxAge: 0 });
+  res.status(200).json({ ok: true });
 });
 
 export default router;
