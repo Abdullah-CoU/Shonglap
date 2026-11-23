@@ -121,12 +121,12 @@ export default function Report() {
     try {
       let photoAnalysis = null;
       if (photo) {
-        photoAnalysis = await apiClient.analyzePhoto(photo, text + ' ' + transcript, privacyBlur);
+        photoAnalysis = await apiClient.analyzePhoto(photo, [text, transcript, area].filter(Boolean).join(' '), privacyBlur);
         sessionStorage.setItem('photoAnalysis', JSON.stringify(photoAnalysis));
       }
 
       const draftData = {
-        text: text + (transcript ? ' ' + transcript : ''),
+        text,
         transcript,
         audioPath,
         photoPath: photoAnalysis?.savedPath || '',

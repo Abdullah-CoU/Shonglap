@@ -27,6 +27,7 @@ const submitLimiter = rateLimit({
 const draftSchema = z.object({
   text: z.string().optional().default(''),
   transcript: z.string().optional().default(''),
+  area: z.string().optional().default(''),
   photoIds: z.array(z.string()).optional().default([]),
   audioPath: z.string().optional().default(''),
   photoPath: z.string().optional().default(''),
@@ -90,10 +91,10 @@ const resolveCoords = (area) => {
 // Helper: build merged text from inputs
 const buildMergedText = (inputs) => {
   const parts = [];
-  if (inputs.text) parts.push(inputs.text);
-  if (inputs.transcript) parts.push(inputs.transcript);
-  if (inputs.area) parts.push(inputs.area);
-  return parts.join(' ').trim();
+  if (inputs.text) parts.push(inputs.text.trim());
+  if (inputs.transcript && inputs.transcript.trim() !== inputs.text?.trim()) parts.push(inputs.transcript.trim());
+  if (inputs.area) parts.push(inputs.area.trim());
+  return [...new Set(parts)].join(' ').trim();
 };
 
 // Helper: generate follow-up questions (max 2) based on missing fields and language
