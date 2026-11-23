@@ -9,7 +9,7 @@ import { dirname, join } from 'path';
 import { Department } from './models/Department.js';
 import { Jurisdiction } from './models/Jurisdiction.js';
 import { User } from './models/User.js';
-import bcrypt from 'bcrypt';
+import { hashPassword } from './utils/password.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -41,11 +41,11 @@ for (const j of jurisdictions) {
 await Jurisdiction.insertMany(entries);
 
 // Demo users
-const adminHash = await bcrypt.hash('admin123', 10);
-const deptHash = await bcrypt.hash('dept123', 10);
+const adminPw = await hashPassword('admin123');
+const deptPw = await hashPassword('dept123');
 await User.insertMany([
-  { name: 'Admin User', email: 'admin@shonglap.gov.bd', passwordHash: adminHash, role: 'admin', department: null },
-  { name: 'DNCC Officer', email: 'dncc@shonglap.gov.bd', passwordHash: deptHash, role: 'department', department: deptMap['DNCC'] },
+  { name: 'Admin User', email: 'admin@shonglap.gov.bd', passwordHash: adminPw.hash, salt: adminPw.salt, role: 'admin', department: null },
+  { name: 'DNCC Officer', email: 'dncc@shonglap.gov.bd', passwordHash: deptPw.hash, salt: deptPw.salt, role: 'department', department: deptMap['DNCC'] },
 ]);
 logger.info('Seeded demo data');
 

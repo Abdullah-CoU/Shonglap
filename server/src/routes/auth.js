@@ -1,11 +1,11 @@
 import express from 'express';
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { User } from '../models/User.js';
 import { validate } from '../middleware/validate.js';
 import { requireAuth } from '../middleware/auth.js';
+import { verifyPassword } from '../utils/password.js';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 
@@ -51,7 +51,7 @@ router.post('/login', loginLimiter, validate(loginSchema), async (req, res, next
       return res.status(401).json({ error: { message: 'Invalid credentials', status: 401 } });
     }
 
-    const valid = await bcrypt.compare(password, user.passwordHash);
+    const valid = await verifyPassword(password, user.passwordHash, user.salt);
     if (!valid) {
       return res.status(401).json({ error: { message: 'Invalid credentials', status: 401 } });
     }
