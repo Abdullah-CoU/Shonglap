@@ -240,13 +240,18 @@ export default function Home() {
 
           {/* Critical alert */}
           {critical > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+            <button
+              onClick={() => navigate('/issues?urgency=critical')}
+              className="w-full text-left bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl p-4 flex items-center gap-3 transition-colors"
+              aria-label="View critical complaints"
+            >
               <span className="text-2xl">⚠️</span>
-              <div>
+              <div className="flex-1">
                 <p className="font-semibold text-red-800">{critical} critical complaint{critical > 1 ? 's' : ''} need immediate attention</p>
                 <p className="text-sm text-red-600">Gas leaks, live wires, and open manholes are escalated to the highest priority.</p>
               </div>
-            </div>
+              <span className="text-red-600 font-medium text-sm whitespace-nowrap">View →</span>
+            </button>
           )}
     </div>
   );

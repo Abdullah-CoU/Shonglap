@@ -31,17 +31,20 @@ export default function Issues() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialFilter = searchParams.get('status') || 'all';
+  const initialUrgency = searchParams.get('urgency') || '';
 
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState(initialFilter);
+  const [urgencyFilter, setUrgencyFilter] = useState(initialUrgency);
   const [category, setCategory] = useState('');
   const [area, setArea] = useState('');
   const [query, setQuery] = useState('');
 
   useEffect(() => {
     setFilter(initialFilter);
-  }, [initialFilter]);
+    setUrgencyFilter(initialUrgency);
+  }, [initialFilter, initialUrgency]);
 
   useEffect(() => {
     fetchComplaints();
@@ -62,6 +65,7 @@ export default function Issues() {
 
   const filtered = complaints.filter((c) => {
     if (filter !== 'all' && FILTER_DEFS[filter] && !FILTER_DEFS[filter].statuses.includes(c.status)) return false;
+    if (urgencyFilter && c.urgency !== urgencyFilter) return false;
     if (category && c.category !== category) return false;
     if (area && c.area !== area) return false;
     if (query) {
@@ -103,14 +107,22 @@ export default function Issues() {
         ].map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setFilter(tab.key)}
+            onClick={() => { setFilter(tab.key); setUrgencyFilter(''); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === tab.key ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              filter === tab.key && !urgencyFilter ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
             {tab.label}
           </button>
         ))}
+        <button
+          onClick={() => { setUrgencyFilter('critical'); setFilter('all'); }}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            urgencyFilter === 'critical' ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
+          }`}
+        >
+          ⚠️ {i18n.language === 'bn' ? 'জরুরি' : 'Critical'}
+        </button>
       </div>
 
       {/* Filters */}
