@@ -26,6 +26,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [markers, setMarkers] = useState([]);
+  const [statusFilter, setStatusFilter] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -40,6 +41,19 @@ export default function Home() {
       // silently fail
     }
   };
+
+  // Filter definitions for the stat cards
+  const FILTERS = {
+    pending: (m) => ['received', 'assigned', 'triage'].includes(m.status),
+    in_progress: (m) => m.status === 'in_progress',
+    resolved: (m) => m.status === 'resolved',
+  };
+
+  const toggleFilter = (key) => {
+    setStatusFilter((prev) => (prev === key ? null : key));
+  };
+
+  const filteredMarkers = statusFilter ? markers.filter(FILTERS[statusFilter]) : markers;
 
   const handleTrack = async (e) => {
     e.preventDefault();
@@ -91,9 +105,12 @@ export default function Home() {
     <div className="p-4 md:p-6 space-y-6">
           {/* Stats Row */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <StatCard icon="⏳" iconColor="text-green-600" label="Pending" sub="All time" value={pending} />
-            <StatCard icon="⚙️" iconColor="text-blue-600" label="In Progress" sub="All time" value={inProgress} />
-            <StatCard icon="✓" iconColor="text-orange-600" label="Solved" sub="All time" value={resolved} />
+            <StatCard icon="⏳" iconColor="text-green-600" label="Pending" sub="All time" value={pending}
+              onClick={() => toggleFilter('pending')} active={statusFilter === 'pending'} />
+            <StatCard icon="⚙️" iconColor="text-blue-600" label="In Progress" sub="All time" value={inProgress}
+              onClick={() => toggleFilter('in_progress')} active={statusFilter === 'in_progress'} />
+            <StatCard icon="✓" iconColor="text-orange-600" label="Solved" sub="All time" value={resolved}
+              onClick={() => toggleFilter('resolved')} active={statusFilter === 'resolved'} />
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center gap-4 col-span-2 md:col-span-1">
               <div className="relative w-20 h-20 flex-shrink-0">
                 <svg viewBox="0 0 36 36" className="w-full h-full">
@@ -172,7 +189,17 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Recent Complaints */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
-              <h2 className="font-semibold text-gray-800 mb-4">Recent Complaints</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-gray-800">Recent Complaints</h2>
+                {statusFilter && (
+                  <button
+                    onClick={() => setStatusFilter(null)}
+                    className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full hover:bg-blue-200"
+                  >
+                    {statusFilter === 'pending' ? 'Pending' : statusFilter === 'in_progress' ? 'In Progress' : 'Solved'} ✕
+                  </button>
+                )}
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -184,7 +211,7 @@ export default function Home() {
                     </tr>
                   </thead>
                   <tbody>
-                    {markers.slice(0, 6).map((m) => (
+                    {filteredMarkers.slice(0, 6).map((m) => (
                       <tr
                         key={m.trackingId}
                         className="border-b border-gray-100 cursor-pointer hover:bg-gray-50"
@@ -200,8 +227,10 @@ export default function Home() {
                         </td>
                       </tr>
                     ))}
-                    {markers.length === 0 && (
-                      <tr><td colSpan={4} className="py-6 text-center text-gray-400">No complaints yet</td></tr>
+                    {filteredMarkers.length === 0 && (
+                      <tr><td colSpan={4} className="py-6 text-center text-gray-400">
+                        {statusFilter ? 'No complaints with this status' : 'No complaints yet'}
+                      </td></tr>
                     )}
                   </tbody>
                 </table>
@@ -244,9 +273,16 @@ export default function Home() {
   );
 }
 
-function StatCard({ icon, iconColor, label, sub, value }) {
+function StatCard({ icon, iconColor, label, sub, value, onClick, active = false }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+    <button
+      type="button"
+      onClick={onClick}
+      className={`bg-white rounded-xl shadow-sm border-2 p-4 text-left w-full transition-all ${
+        active ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-200 hover:border-blue-300 hover:shadow-md'
+      }`}
+      aria-label={`Filter by ${label}`}
+    >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-gray-500">{label}</p>
@@ -255,6 +291,6 @@ function StatCard({ icon, iconColor, label, sub, value }) {
         <span className={`text-2xl ${iconColor}`}>{icon}</span>
       </div>
       <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
-    </div>
+    </button>
   );
 }
