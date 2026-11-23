@@ -18,6 +18,7 @@ export default function Sidebar({ open, onClose }) {
     { key: 'home', label: isBn ? 'হোম' : 'Home', icon: '⌂', path: '/' },
     { key: 'report', label: isBn ? 'অভিযোগ রিপোর্ট' : 'Report Complaint', icon: '✎', path: '/report' },
     { key: 'track', label: isBn ? 'অভিযোগ ট্র্যাক' : 'Track Complaint', icon: '⌕', path: '/track' },
+    { key: 'issues', label: isBn ? 'অভিযোগের তালিকা' : 'Issue List', icon: '☰', path: '/issues' },
     { key: 'analytics', label: isBn ? 'বিশ্লেষণ' : 'Analytics', icon: '▤', path: '/analytics' },
   ];
 

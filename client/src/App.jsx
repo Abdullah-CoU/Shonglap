@@ -8,6 +8,7 @@ import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import Analytics from './pages/Analytics.jsx';
+import Issues from './pages/Issues.jsx';
 import Layout from './components/Layout.jsx';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/admin" element={<AdminDashboard />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/issues" element={<Issues />} />
         </Routes>
       </Layout>
     </BrowserRouter>
