@@ -24,6 +24,13 @@ describe('Extraction Service Tests', () => {
     samples.find((s) => s.text.includes('Dhanmondi') && s.expectedCategory === 'water'),
   ].filter(Boolean);
 
+  test('detects Bangla area and category from transcript', async () => {
+    const extracted = await extractComplaint({ text: 'তেজগাঁও এলাকাতে লোডশেডিং হচ্ছে ঘনঘন। এটা বন্ধ করার ব্যবস্থা করুন।' });
+    expect(extracted.area).toBe('Tejgaon');
+    expect(extracted.category).toBe('electricity');
+    expect(extracted.missingFields).not.toContain('area');
+  });
+
   test('should extract 10 sample complaints correctly', async () => {
     const results = [];
 

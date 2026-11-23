@@ -101,7 +101,7 @@ const mockExtract = ({ text, imageDescriptions = [] }) => {
     category = 'spam';
   } else if (combined.includes('gas') || combined.includes('গ্যাস')) {
     category = 'gas';
-  } else if (combined.includes('transformer') || combined.includes('bijli') || combined.includes('bidyut') || combined.includes('electricity') || combined.includes('power') || combined.includes('বিদ্যুৎ') || combined.includes('outage') || combined.includes('loadshedding') || combined.includes('live wire') || combined.includes('hanging') || combined.includes('wire') || combined.includes('তার') || combined.includes('voltage')) {
+  } else if (combined.includes('transformer') || combined.includes('bijli') || combined.includes('bidyut') || combined.includes('electricity') || combined.includes('power') || combined.includes('বিদ্যুৎ') || combined.includes('outage') || combined.includes('loadshedding') || combined.includes('লোডশেডিং') || combined.includes('লোড শেডিং') || combined.includes('live wire') || combined.includes('hanging') || combined.includes('wire') || combined.includes('তার') || combined.includes('voltage')) {
     category = 'electricity';
   } else if (combined.includes('waterlogging') || combined.includes('waterlog') || combined.includes('জলাবদ্ধতা') || combined.includes('waterlogged')) {
     category = 'waterlogging';
@@ -165,7 +165,15 @@ const mockExtract = ({ text, imageDescriptions = [] }) => {
     }
   }
   if (!area) {
-    const bnAreas = { 'গুলশান': 'Gulshan', 'বনানী': 'Banani', 'ধানমন্ডি': 'Dhanmondi', 'উত্তরা': 'Uttara', 'মিরপুর': 'Mirpur', 'মতিঝিল': 'Motijheel', 'পুরান ঢাকা': 'Old Dhaka', 'যাত্রাবাড়ী': 'Jatrabari' };
+    const bnAreas = {
+      'গুলশান': 'Gulshan', 'বনানী': 'Banani', 'ধানমন্ডি': 'Dhanmondi', 'উত্তরা': 'Uttara',
+      'মিরপুর': 'Mirpur', 'মতিঝিল': 'Motijheel', 'পুরান ঢাকা': 'Old Dhaka', 'যাত্রাবাড়ী': 'Jatrabari',
+      'মোহাম্মদপুর': 'Mohammadpur', 'তেজগাঁও': 'Tejgaon', 'বড্ডা': 'Badda', 'রামপুরা': 'Rampura',
+      'বারিধারা': 'Baridhara', 'মোহাখালি': 'Mohakhali', 'কাফরুল': 'Kafrul', 'ক্যান্টনমেন্ট': 'Cantonment',
+      'ওয়ারী': 'Wari', 'লালবাগ': 'Lalbagh', 'সুত্রাপুর': 'Sutrapur', 'গেন্ডারিয়া': 'Gendaria',
+      'শ্যামপুর': 'Shyampur', 'দেমড়া': 'Demra', 'কদমতলী': 'Kadamtali', 'আদাবর': 'Adabar',
+      'হাজারীবাগ': 'Hazaribagh', 'সাভার': 'Savar',
+    };
     for (const [bn, en] of Object.entries(bnAreas)) {
       if (combined.includes(bn)) {
         area = en;
