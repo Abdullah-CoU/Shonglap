@@ -242,13 +242,13 @@ export default function Home() {
           {critical > 0 && (
             <button
               onClick={() => navigate('/issues?urgency=critical')}
-              className="w-full text-left bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl p-4 flex items-center gap-3 transition-colors"
+              className="w-full text-left bg-red-950/50 hover:bg-red-900/60 border border-red-400/40 rounded-xl p-4 flex items-center gap-3 transition-colors text-white"
               aria-label="View critical complaints"
             >
               <span className="text-2xl">⚠️</span>
               <div className="flex-1">
-                <p className="font-semibold text-red-800">{critical} critical complaint{critical > 1 ? 's' : ''} need immediate attention</p>
-                <p className="text-sm text-red-600">Gas leaks, live wires, and open manholes are escalated to the highest priority.</p>
+                <p className="font-semibold text-red-100">{critical} critical complaint{critical > 1 ? 's' : ''} need immediate attention</p>
+                <p className="text-sm text-red-200">Gas leaks, live wires, and open manholes are escalated to the highest priority.</p>
               </div>
               <span className="text-red-600 font-medium text-sm whitespace-nowrap">View →</span>
             </button>
@@ -262,17 +262,17 @@ function StatCard({ icon, iconColor, label, sub, value, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-left w-full transition-all hover:border-blue-400 hover:shadow-md"
+      className="glass-dark rounded-xl p-4 text-left w-full transition-all hover:border-white/40 text-white"
       aria-label={`View ${label} issues`}
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className="text-xs text-gray-400">{sub}</p>
+          <p className="text-sm text-slate-300">{label}</p>
+          <p className="text-xs text-slate-400">{sub}</p>
         </div>
         <span className={`text-2xl ${iconColor}`}>{icon}</span>
       </div>
-      <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
+      <p className="text-3xl font-bold text-white mt-2">{value}</p>
     </button>
   );
 }

@@ -81,10 +81,10 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+      <header className="bg-white shadow-sm border-b border-white/15 border-gray-200 px-4 py-3 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">Department Dashboard</h1>
-          <p className="text-sm text-gray-600">{user?.name} ({user?.department?.nameEn})</p>
+          <h1 className="text-lg font-bold text-white">Department Dashboard</h1>
+          <p className="text-sm text-slate-300">{user?.name} ({user?.department?.nameEn})</p>
         </div>
         <button
           onClick={handleLogout}
@@ -152,24 +152,24 @@ export default function Dashboard() {
         )}
 
         {loading ? (
-          <p className="text-gray-600">{t('loading')}</p>
+          <p className="text-slate-300">{t('loading')}</p>
         ) : (
           <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 border-b border-white/15 border-gray-200">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Tracking ID</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Category</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Area</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Urgency</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Actions</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-300">Tracking ID</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-300">Category</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-300">Area</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-300">Urgency</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-300">Status</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-300">Date</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-300">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {complaints.map((c) => (
-                  <tr key={c._id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={c._id} className="border-b border-white/15 border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3 font-mono text-xs">{c.trackingId}</td>
                     <td className="px-4 py-3">{c.category}</td>
                     <td className="px-4 py-3">{c.area}</td>
@@ -183,7 +183,7 @@ export default function Dashboard() {
                         {c.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-500">
+                    <td className="px-4 py-3 text-xs text-slate-400">
                       {new Date(c.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
@@ -198,7 +198,7 @@ export default function Dashboard() {
                 ))}
                 {complaints.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
                       No complaints found.
                     </td>
                   </tr>
@@ -246,7 +246,7 @@ function ComplaintDetail({ complaint, onClose, onRefresh }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4">
+      <div className="glass-dark rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">{complaint.trackingId}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
