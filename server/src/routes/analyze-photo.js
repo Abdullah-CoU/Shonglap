@@ -50,7 +50,7 @@ router.post('/', upload.single('photo'), async (req, res, next) => {
     }
 
     // Analyze
-    const text = req.body.text || '';
+    const text = typeof req.body.text === 'string' ? req.body.text.slice(0, 2000) : '';
     const result = await analyzePhoto(finalPath, { text });
 
     res.status(200).json({

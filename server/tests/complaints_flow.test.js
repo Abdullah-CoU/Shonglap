@@ -124,7 +124,7 @@ describe('Complaints Flow Integration Tests', () => {
 
   test('Draft not found returns 404', async () => {
     const res = await request(app)
-      .post('/api/complaints/draft/nonexistent-id/answer')
+      .post('/api/complaints/draft/00000000-0000-4000-8000-000000000000/answer')
       .send({ answers: {} });
 
     expect(res.status).toBe(404);
@@ -133,7 +133,7 @@ describe('Complaints Flow Integration Tests', () => {
   test('Submit with invalid draftId returns 404', async () => {
     const res = await request(app)
       .post('/api/complaints/submit')
-      .send({ draftId: 'nonexistent-id' });
+      .send({ draftId: '00000000-0000-4000-8000-000000000000' });
 
     expect(res.status).toBe(404);
   });
@@ -158,7 +158,8 @@ describe('Complaints Flow Integration Tests', () => {
       .send({ lat: 'not-a-number' });
 
     expect(res.status).toBe(400);
-    expect(res.body.error.message).toContain('Validation');
+    expect(res.body.error.message).toMatch(/Invalid|Validation/);
+    expect(res.body.error.details).toBeDefined();
   });
 
   test('Follow-up answer sets area and submit succeeds (regression)', async () => {

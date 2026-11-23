@@ -5,7 +5,7 @@ import { Department } from '../models/Department.js';
 import { RoutingCorrection } from '../models/RoutingCorrection.js';
 import { User } from '../models/User.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
-import { validate } from '../middleware/validate.js';
+import { validate, validateParams, validateQuery } from '../middleware/validate.js';
 import { logger } from '../utils/logger.js';
 
 const router = express.Router();
@@ -18,6 +18,18 @@ const assignSchema = z.object({
 const rerouteSchema = z.object({
   newDepartmentId: z.string().min(1),
   note: z.string().optional().default(''),
+});
+
+const objectIdParam = z.object({
+  id: z.string().regex(/^[a-fA-F0-9]{24}$/, 'Invalid complaint ID'),
+});
+
+const complaintsQuerySchema = z.object({
+  urgency: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  status: z.enum(['received', 'assigned', 'in_progress', 'resolved', 'rejected', 'triage']).optional(),
+  area: z.string().trim().max(100).optional(),
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional(),
 });
 
 // Triage queue: complaints with status 'triage'
@@ -36,11 +48,11 @@ router.get('/triage', requireAuth, requireRole('admin'), async (req, res, next) 
 });
 
 // Manual assign a complaint to a department
-router.post('/complaints/:id/assign', requireAuth, requireRole('admin'), validate(assignSchema), async (req, res, next) => {
+router.post('/complaints/:id/assign', requireAuth, requireRole('admin'), validateParams(objectIdParam), validate(assignSchema), async (req, res, next) => {
   try {
     const { departmentId, note } = req.validated;
 
-    const complaint = await Complaint.findById(req.params.id)
+    const complaint = await Complaint.findById(req.validatedParams.id)
       .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters');
     if (!complaint) {
       return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
@@ -91,11 +103,11 @@ router.post('/complaints/:id/assign', requireAuth, requireRole('admin'), validat
 });
 
 // Re-route a complaint to a different department
-router.post('/complaints/:id/reroute', requireAuth, requireRole('admin'), validate(rerouteSchema), async (req, res, next) => {
+router.post('/complaints/:id/reroute', requireAuth, requireRole('admin'), validateParams(objectIdParam), validate(rerouteSchema), async (req, res, next) => {
   try {
     const { newDepartmentId, note } = req.validated;
 
-    const complaint = await Complaint.findById(req.params.id)
+    const complaint = await Complaint.findById(req.validatedParams.id)
       .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters');
     if (!complaint) {
       return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
@@ -161,18 +173,18 @@ router.post('/complaints/:id/reroute', requireAuth, requireRole('admin'), valida
 });
 
 // List all complaints (admin)
-router.get('/complaints', requireAuth, requireRole('admin'), async (req, res, next) => {
+router.get('/complaints', requireAuth, requireRole('admin'), validateQuery(complaintsQuerySchema), async (req, res, next) => {
   try {
-    const { urgency, status, area, from, to } = req.query;
+    const { urgency, status, area, from, to } = req.validatedQuery;
     const filter = {};
 
     if (urgency) filter.urgency = urgency;
     if (status) filter.status = status;
-    if (area) filter.area = new RegExp(area, 'i');
+    if (area) filter.area = new RegExp(area.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     if (from || to) {
       filter.createdAt = {};
-      if (from) filter.createdAt.$gte = new Date(from);
-      if (to) filter.createdAt.$lte = new Date(to);
+      if (from) filter.createdAt.$gte = from;
+      if (to) filter.createdAt.$lte = to;
     }
 
     const complaints = await Complaint.find(filter)

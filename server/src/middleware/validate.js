@@ -1,24 +1,36 @@
 import { z } from 'zod';
-import { logger } from '../utils/logger.js';
 
 /**
  * Zod validation middleware factory.
  * @param {z.ZodSchema} schema - Zod schema to validate against.
+ * @param {'body'|'query'|'params'} [source='body'] - Request property to validate.
  * @returns {Function} Express middleware.
  */
-export function validate(schema) {
+export function validate(schema, source = 'body') {
   return (req, res, next) => {
-    const result = schema.safeParse(req.body);
+    const data = req[source] ?? {};
+    const result = schema.safeParse(data);
     if (!result.success) {
       const errors = result.error.issues.map((i) => ({
         path: i.path.join('.'),
         message: i.message,
       }));
       return res.status(400).json({
-        error: { message: 'Validation failed', status: 400, details: errors },
+        error: {
+          message: `Invalid ${source} input`,
+          status: 400,
+          details: errors,
+        },
       });
     }
-    req.validated = result.data;
+
+    if (source === 'body') req.validated = result.data;
+    else if (source === 'query') req.validatedQuery = result.data;
+    else if (source === 'params') req.validatedParams = result.data;
     next();
   };
 }
+
+export const validateBody = (schema) => validate(schema, 'body');
+export const validateQuery = (schema) => validate(schema, 'query');
+export const validateParams = (schema) => validate(schema, 'params');

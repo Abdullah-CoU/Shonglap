@@ -64,13 +64,33 @@ app.use((req, res, next) => {
 // Global JSON Error Handler
 app.use((err, req, res, next) => {
   logger.error(err);
-  const status = err.status || 500;
+  let status = err.status || 500;
+  let message = err.message || 'Internal Server Error';
+  let details;
+
+  if (err.name === 'ZodError') {
+    status = 400;
+    message = 'Invalid input';
+    details = err.issues?.map((i) => ({ path: i.path?.join('.'), message: i.message }));
+  } else if (err.name === 'CastError') {
+    status = 400;
+    message = `Invalid ${err.path || 'parameter'}: ${err.value}`;
+  } else if (err.name === 'ValidationError') {
+    status = 400;
+    message = 'Validation failed';
+    details = Object.values(err.errors || {}).map((e) => ({ path: e.path, message: e.message }));
+  } else if (err.type === 'entity.parse.failed') {
+    status = 400;
+    message = 'Invalid JSON body';
+  }
+
   res.status(status).json({
     error: {
-      message: err.message || 'Internal Server Error',
+      message,
       status,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    }
+      ...(details ? { details } : {}),
+      ...(env.NODE_ENV === 'development' && { stack: err.stack }),
+    },
   });
 });
 

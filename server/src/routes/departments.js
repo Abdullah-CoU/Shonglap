@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { Complaint } from '../models/Complaint.js';
 import { Department } from '../models/Department.js';
 import { requireAuth, requireRole, requireDepartment, departmentScope } from '../middleware/auth.js';
-import { validate } from '../middleware/validate.js';
+import { validate, validateParams, validateQuery } from '../middleware/validate.js';
 import { sendStatusUpdate } from '../services/notify.js';
 import { logger } from '../utils/logger.js';
 
@@ -11,8 +11,20 @@ const router = express.Router();
 
 const statusUpdateSchema = z.object({
   status: z.enum(['received', 'assigned', 'in_progress', 'resolved', 'rejected', 'triage']),
-  note: z.string().optional().default(''),
-  resolutionPhoto: z.string().optional(),
+  note: z.string().max(2000).optional().default(''),
+  resolutionPhoto: z.string().max(500).optional(),
+});
+
+const objectIdParam = z.object({
+  id: z.string().regex(/^[a-fA-F0-9]{24}$/, 'Invalid complaint ID'),
+});
+
+const complaintsQuerySchema = z.object({
+  urgency: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  status: z.enum(['received', 'assigned', 'in_progress', 'resolved', 'rejected', 'triage']).optional(),
+  area: z.string().trim().max(100).optional(),
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional(),
 });
 
 // List all departments (for admin picker)
@@ -26,9 +38,9 @@ router.get('/', async (req, res, next) => {
 });
 
 // List complaints for the department
-router.get('/complaints', requireAuth, requireRole('department', 'admin'), requireDepartment, async (req, res, next) => {
+router.get('/complaints', requireAuth, requireRole('department', 'admin'), requireDepartment, validateQuery(complaintsQuerySchema), async (req, res, next) => {
   try {
-    const { urgency, status, area, from, to } = req.query;
+    const { urgency, status, area, from, to } = req.validatedQuery;
 
     const filter = {};
 
@@ -39,11 +51,11 @@ router.get('/complaints', requireAuth, requireRole('department', 'admin'), requi
 
     if (urgency) filter.urgency = urgency;
     if (status) filter.status = status;
-    if (area) filter.area = new RegExp(area, 'i');
+    if (area) filter.area = new RegExp(area.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     if (from || to) {
       filter.createdAt = {};
-      if (from) filter.createdAt.$gte = new Date(from);
-      if (to) filter.createdAt.$lte = new Date(to);
+      if (from) filter.createdAt.$gte = from;
+      if (to) filter.createdAt.$lte = to;
     }
 
     const complaints = await Complaint.find(filter)
@@ -62,9 +74,9 @@ router.get('/complaints', requireAuth, requireRole('department', 'admin'), requi
 });
 
 // Get complaint detail
-router.get('/complaints/:id', requireAuth, requireRole('department', 'admin'), requireDepartment, async (req, res, next) => {
+router.get('/complaints/:id', requireAuth, requireRole('department', 'admin'), requireDepartment, validateParams(objectIdParam), async (req, res, next) => {
   try {
-    const complaint = await Complaint.findById(req.params.id)
+    const complaint = await Complaint.findById(req.validatedParams.id)
       .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters')
       .populate('routing.department', '_id nameEn nameBn jurisdictionType')
       .lean();
@@ -89,11 +101,11 @@ router.get('/complaints/:id', requireAuth, requireRole('department', 'admin'), r
 });
 
 // Update complaint status
-router.patch('/complaints/:id/status', requireAuth, requireRole('department', 'admin'), requireDepartment, validate(statusUpdateSchema), async (req, res, next) => {
+router.patch('/complaints/:id/status', requireAuth, requireRole('department', 'admin'), requireDepartment, validateParams(objectIdParam), validate(statusUpdateSchema), async (req, res, next) => {
   try {
     const { status, note, resolutionPhoto } = req.validated;
 
-    const complaint = await Complaint.findById(req.params.id)
+    const complaint = await Complaint.findById(req.validatedParams.id)
       .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters');
     if (!complaint) {
       return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });

@@ -9,7 +9,7 @@ import { Draft } from '../models/Draft.js';
 import { extractComplaint } from '../services/extraction.js';
 import { routeComplaint } from '../services/routing.js';
 import { fireNotifications } from '../services/notify.js';import { checkSpam } from '../utils/spam.js';
-import { findDuplicates, addSupporter } from '../services/duplicate.js';import { validate } from '../middleware/validate.js';
+import { findDuplicates, addSupporter } from '../services/duplicate.js';import { validate, validateParams, validateQuery } from '../middleware/validate.js';
 import { logger } from '../utils/logger.js';
 import { env } from '../config/env.js';
 const router = express.Router();
@@ -43,8 +43,26 @@ const answerSchema = z.object({
 });
 
 const submitSchema = z.object({
-  draftId: z.string().min(1),
+  draftId: z.string().uuid('Invalid draft ID'),
   force: z.boolean().optional().default(false),
+});
+
+const draftIdParam = z.object({
+  id: z.string().uuid('Invalid draft ID'),
+});
+
+const trackingIdParam = z.object({
+  trackingId: z.string().regex(/^DHK-\d{8}-\d{4}$/, 'Invalid tracking ID format'),
+});
+
+const searchQuerySchema = z.object({
+  q: z.string().trim().min(1, 'Search query is required').max(100, 'Search query too long'),
+});
+
+const mapQuerySchema = z.object({
+  category: z.string().trim().max(50).optional(),
+  status: z.enum(['received', 'assigned', 'in_progress', 'resolved', 'rejected', 'triage']).optional(),
+  urgency: z.enum(['low', 'medium', 'high', 'critical']).optional(),
 });
 
 // Helper: generate tracking ID
@@ -240,9 +258,9 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
 });
 
 // POST /api/complaints/draft/:id/answer
-router.post('/draft/:id/answer', validate(answerSchema), async (req, res, next) => {
+router.post('/draft/:id/answer', validateParams(draftIdParam), validate(answerSchema), async (req, res, next) => {
   try {
-    const draft = await Draft.findOne({ sessionId: req.params.id }).select('_id sessionId data createdAt updatedAt');
+    const draft = await Draft.findOne({ sessionId: req.validatedParams.id }).select('_id sessionId data createdAt updatedAt');
     if (!draft) {
       return res.status(404).json({ error: { message: 'Draft not found', status: 404 } });
     }
@@ -362,9 +380,9 @@ router.post('/check-duplicate', validate(checkDuplicateSchema), async (req, res,
 });
 
 // POST /api/complaints/:trackingId/support
-router.post('/:trackingId/support', async (req, res, next) => {
+router.post('/:trackingId/support', validateParams(trackingIdParam), async (req, res, next) => {
   try {
-    const complaint = await addSupporter(req.params.trackingId);
+    const complaint = await addSupporter(req.validatedParams.trackingId);
     res.status(200).json({
       trackingId: complaint.trackingId,
       supporters: complaint.supporters,
@@ -562,9 +580,9 @@ router.get('/search', async (req, res, next) => {
 });
 
 // GET /api/complaints/map - public map data
-router.get('/map', async (req, res, next) => {
+router.get('/map', validateQuery(mapQuerySchema), async (req, res, next) => {
   try {
-    const { category, status, urgency } = req.query;
+    const { category, status, urgency } = req.validatedQuery;
     const filter = {};
     if (category) filter.category = category;
     if (status) filter.status = status;
@@ -596,9 +614,9 @@ router.get('/map', async (req, res, next) => {
 
 // GET /api/complaints/:trackingId/report - JSON + minimal formal report
 import { generateReport } from '../services/report.js';
-router.get('/:trackingId/report', async (req, res, next) => {
+router.get('/:trackingId/report', validateParams(trackingIdParam), async (req, res, next) => {
   try {
-    const complaint = await Complaint.findOne({ trackingId: req.params.trackingId })
+    const complaint = await Complaint.findOne({ trackingId: req.validatedParams.trackingId })
       .select('_id trackingId category description descriptionBn area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters')
       .populate('routing.department', '_id nameEn nameBn jurisdictionType')
       .lean();
@@ -617,9 +635,9 @@ router.get('/:trackingId/report', async (req, res, next) => {
 });
 
 // GET /api/complaints/track/:trackingId
-router.get('/track/:trackingId', async (req, res, next) => {
+router.get('/track/:trackingId', validateParams(trackingIdParam), async (req, res, next) => {
   try {
-    const complaint = await Complaint.findOne({ trackingId: req.params.trackingId })
+    const complaint = await Complaint.findOne({ trackingId: req.validatedParams.trackingId })
       .select('trackingId category description area urgency status statusLog createdAt updatedAt')
       .lean();
 

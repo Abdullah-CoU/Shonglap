@@ -1,10 +1,16 @@
 import express from 'express';
+import { z } from 'zod';
 import { Complaint } from '../models/Complaint.js';
 import { requireAuth, requireRole, requireDepartment } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
 import { logger } from '../utils/logger.js';
 import { User } from '../models/User.js';
 
 const router = express.Router();
+
+const markReadSchema = z.object({
+  ids: z.array(z.string().max(200)).max(200).optional().default([]),
+});
 
 /**
  * Build notifications for a staff user from complaint data.
@@ -104,9 +110,9 @@ router.get('/', requireAuth, requireRole('department', 'admin'), requireDepartme
 });
 
 // POST /api/notifications/read - mark specific (or all) notifications as read
-router.post('/read', requireAuth, requireRole('department', 'admin'), requireDepartment, async (req, res, next) => {
+router.post('/read', requireAuth, requireRole('department', 'admin'), requireDepartment, validate(markReadSchema), async (req, res, next) => {
   try {
-    const { ids } = req.body || {};
+    const { ids } = req.validated;
     const user = req.dbUser;
     const filter = {};
     if (user.role === 'department' && user.department) filter['routing.department'] = user.department._id;

@@ -54,7 +54,7 @@ router.post('/', upload.single('audio'), async (req, res, next) => {
     }
 
     // Transcribe
-    const language = req.body.language || 'bn';
+    const language = ['bn', 'en'].includes(req.body.language) ? req.body.language : 'bn';
     const result = await transcribeAudio(transcribePath, { language });
 
     res.status(200).json({

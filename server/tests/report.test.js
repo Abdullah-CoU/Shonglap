@@ -63,7 +63,7 @@ describe('Report Service Tests', () => {
     });
 
     test('GET report for unknown ID returns 404', async () => {
-      const res = await request(app).get('/api/complaints/UNKNOWN/report');
+      const res = await request(app).get('/api/complaints/DHK-20990101-0000/report');
       expect(res.status).toBe(404);
     });
   });
