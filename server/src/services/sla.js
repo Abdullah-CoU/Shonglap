@@ -24,7 +24,8 @@ export async function checkSLA() {
   const activeComplaints = await Complaint.find({
     status: { $in: ['received', 'assigned', 'in_progress'] },
   })
-    .populate('routing.department')
+    .select('_id trackingId category area urgency status createdAt slaDeadline routing statusLog')
+    .populate('routing.department', '_id nameEn nameBn slaHours jurisdictionType')
     .lean();
 
   for (const complaint of activeComplaints) {
@@ -60,7 +61,7 @@ export async function checkSLA() {
             at: now,
           },
         },
-      });
+      }).select('_id');
 
       // Email department head
       await sendDepartmentEmail(

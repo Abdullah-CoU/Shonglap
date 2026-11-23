@@ -66,7 +66,7 @@ export async function addSupporter(complaintId) {
     query,
     { $inc: { supporters: 1 } },
     { new: true }
-  ).lean();
+  ).select('_id trackingId supporters').lean();
 
   if (!complaint) {
     throw new Error('Complaint not found');

@@ -124,7 +124,7 @@ router.post('/read', requireAuth, requireRole('department', 'admin'), requireDep
       user._id,
       { $addToSet: { readNotifications: { $each: toMark.map(String) } } },
       { new: true }
-    ).lean();
+    ).select('_id readNotifications').lean();
 
     res.status(200).json({ ok: true, unread: 0, readCount: (updated.readNotifications || []).length });
   } catch (err) {

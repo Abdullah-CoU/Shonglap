@@ -24,7 +24,8 @@ const rerouteSchema = z.object({
 router.get('/triage', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
     const complaints = await Complaint.find({ status: 'triage' })
-      .populate('routing.department')
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters')
+      .populate('routing.department', '_id nameEn nameBn jurisdictionType')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -39,12 +40,13 @@ router.post('/complaints/:id/assign', requireAuth, requireRole('admin'), validat
   try {
     const { departmentId, note } = req.validated;
 
-    const complaint = await Complaint.findById(req.params.id);
+    const complaint = await Complaint.findById(req.params.id)
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters');
     if (!complaint) {
       return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
     }
 
-    const department = await Department.findById(departmentId).lean();
+    const department = await Department.findById(departmentId).select('_id nameEn nameBn jurisdictionType').lean();
     if (!department) {
       return res.status(404).json({ error: { message: 'Department not found', status: 404 } });
     }
@@ -93,12 +95,13 @@ router.post('/complaints/:id/reroute', requireAuth, requireRole('admin'), valida
   try {
     const { newDepartmentId, note } = req.validated;
 
-    const complaint = await Complaint.findById(req.params.id);
+    const complaint = await Complaint.findById(req.params.id)
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters');
     if (!complaint) {
       return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
     }
 
-    const newDept = await Department.findById(newDepartmentId).lean();
+    const newDept = await Department.findById(newDepartmentId).select('_id nameEn nameBn jurisdictionType').lean();
     if (!newDept) {
       return res.status(404).json({ error: { message: 'Department not found', status: 404 } });
     }
@@ -173,7 +176,8 @@ router.get('/complaints', requireAuth, requireRole('admin'), async (req, res, ne
     }
 
     const complaints = await Complaint.find(filter)
-      .populate('routing.department')
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters')
+      .populate('routing.department', '_id nameEn nameBn jurisdictionType')
       .sort({ createdAt: -1 })
       .lean();
 

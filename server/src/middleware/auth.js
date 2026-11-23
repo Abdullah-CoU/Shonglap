@@ -20,7 +20,10 @@ export async function requireAuth(req, res, next) {
     req.user = decoded;
 
     // Reject tokens for deleted users
-    const user = await User.findById(decoded.id).populate('department').lean();
+    const user = await User.findById(decoded.id)
+      .select('_id name email role department readNotifications createdAt')
+      .populate('department', '_id nameEn nameBn jurisdictionType')
+      .lean();
     if (!user) {
       return res.status(401).json({ error: { message: 'User no longer exists', status: 401 } });
     }

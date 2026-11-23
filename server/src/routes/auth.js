@@ -55,7 +55,10 @@ router.post('/login', loginLimiter, validate(loginSchema), async (req, res, next
   try {
     const { email, password } = req.validated;
 
-    const user = await User.findOne({ email }).populate('department').lean();
+    const user = await User.findOne({ email })
+      .select('_id name email role department passwordHash salt')
+      .populate('department', '_id nameEn nameBn jurisdictionType')
+      .lean();
     if (!user) {
       return res.status(401).json({ error: { message: 'Invalid credentials', status: 401 } });
     }

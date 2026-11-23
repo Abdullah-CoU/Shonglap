@@ -47,6 +47,7 @@ router.get('/complaints', requireAuth, requireRole('department', 'admin'), requi
     }
 
     const complaints = await Complaint.find(filter)
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters')
       .sort({ urgency: -1, createdAt: -1 })
       .lean();
 
@@ -64,7 +65,8 @@ router.get('/complaints', requireAuth, requireRole('department', 'admin'), requi
 router.get('/complaints/:id', requireAuth, requireRole('department', 'admin'), requireDepartment, async (req, res, next) => {
   try {
     const complaint = await Complaint.findById(req.params.id)
-      .populate('routing.department')
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters')
+      .populate('routing.department', '_id nameEn nameBn jurisdictionType')
       .lean();
 
     if (!complaint) {
@@ -91,7 +93,8 @@ router.patch('/complaints/:id/status', requireAuth, requireRole('department', 'a
   try {
     const { status, note, resolutionPhoto } = req.validated;
 
-    const complaint = await Complaint.findById(req.params.id);
+    const complaint = await Complaint.findById(req.params.id)
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters');
     if (!complaint) {
       return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
     }

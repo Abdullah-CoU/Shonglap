@@ -56,7 +56,7 @@ const generateTrackingId = async () => {
   // Find highest existing sequence for today
   const lastComplaint = await Complaint.findOne({
     trackingId: { $regex: `^${prefix}` },
-  }).sort({ trackingId: -1 });
+  }).select('_id trackingId').sort({ trackingId: -1 }).lean();
 
   let seq = 1;
   if (lastComplaint) {
@@ -180,11 +180,11 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
 
     // Get department names for routing response
     const primaryDept = routing.primaryDepartmentId
-      ? await Department.findById(routing.primaryDepartmentId).lean()
+      ? await Department.findById(routing.primaryDepartmentId).select('_id nameEn nameBn jurisdictionType email phone').lean()
       : null;
     const secondaryDepts = await Department.find({
       _id: { $in: routing.secondaryDepartmentIds },
-    }).lean();
+    }).select('_id nameEn nameBn jurisdictionType email phone').lean();
 
     // Generate follow-up questions
     const followUpQuestions = generateFollowUpQuestions(extracted.missingFields, inputs.language);
@@ -242,7 +242,7 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
 // POST /api/complaints/draft/:id/answer
 router.post('/draft/:id/answer', validate(answerSchema), async (req, res, next) => {
   try {
-    const draft = await Draft.findOne({ sessionId: req.params.id });
+    const draft = await Draft.findOne({ sessionId: req.params.id }).select('_id sessionId data createdAt updatedAt');
     if (!draft) {
       return res.status(404).json({ error: { message: 'Draft not found', status: 404 } });
     }
@@ -277,11 +277,11 @@ router.post('/draft/:id/answer', validate(answerSchema), async (req, res, next) 
     const routing = await routeComplaint(extracted, location);
 
     const primaryDept = routing.primaryDepartmentId
-      ? await Department.findById(routing.primaryDepartmentId).lean()
+      ? await Department.findById(routing.primaryDepartmentId).select('_id nameEn nameBn jurisdictionType email phone').lean()
       : null;
     const secondaryDepts = await Department.find({
       _id: { $in: routing.secondaryDepartmentIds },
-    }).lean();
+    }).select('_id nameEn nameBn jurisdictionType email phone').lean();
 
     const followUpQuestions = generateFollowUpQuestions(extracted.missingFields, inputs.language);
     const conflicts = checkConflicts(extracted, []);
@@ -383,7 +383,7 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
   try {
     const { draftId } = req.validated;
 
-    const draft = await Draft.findOne({ sessionId: draftId });
+    const draft = await Draft.findOne({ sessionId: draftId }).select('_id sessionId data createdAt updatedAt');
     if (!draft) {
       return res.status(404).json({ error: { message: 'Draft not found', status: 404 } });
     }
@@ -494,7 +494,7 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
 
     // Trigger notifications asynchronously
     const primaryDept = routingData.primaryDepartmentId
-      ? await Department.findById(routingData.primaryDepartmentId).lean()
+      ? await Department.findById(routingData.primaryDepartmentId).select('_id nameEn nameBn jurisdictionType email phone').lean()
       : null;
 
     if (primaryDept) {
@@ -599,7 +599,8 @@ import { generateReport } from '../services/report.js';
 router.get('/:trackingId/report', async (req, res, next) => {
   try {
     const complaint = await Complaint.findOne({ trackingId: req.params.trackingId })
-      .populate('routing.department')
+      .select('_id trackingId category description descriptionBn area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters')
+      .populate('routing.department', '_id nameEn nameBn jurisdictionType')
       .lean();
     if (!complaint) {
       return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });

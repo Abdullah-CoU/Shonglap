@@ -262,8 +262,8 @@ Classify this complaint and return JSON.`;
  */
 export async function routeComplaint(extracted, location = null) {
   const normLocation = normalizeLocation(location);
-  const departments = await Department.find({}).lean();
-  const jurisdictions = await Jurisdiction.find({}).populate('department').lean();
+  const departments = await Department.find({}).select('_id nameEn nameBn email responsibilities keywords jurisdictionType slaHours').lean();
+  const jurisdictions = await Jurisdiction.find({}).select('_id department areaName wards verified').populate('department', '_id nameEn nameBn email responsibilities keywords jurisdictionType slaHours').lean();
 
   const searchText = buildSearchText(extracted);
   const deptMap = new Map(departments.map((d) => [d._id.toString(), d]));
