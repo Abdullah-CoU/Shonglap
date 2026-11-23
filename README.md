@@ -1,116 +1,98 @@
-# Shonglap (সংলাপ) - Dhaka Civic Complaint Auto-Routing Portal
+# Shonglap (সংলাপ)
 
-Shonglap is a comprehensive MERN-stack portal designed for Dhaka, Bangladesh, enabling citizens to report civic problems (via text, photo, or Bangla voice note) with automated multi-stage routing, Zod validation, and departmental dashboards.
+Shonglap is a MERN civic complaint portal for Dhaka, Bangladesh. Citizens can report issues via text, voice, or photo in Bangla/English/Banglish. The system extracts structured complaint data, routes complaints with a hybrid rules + LLM pipeline, and provides staff dashboards, tracking, notifications, and formal report generation.
 
-## Architecture
+## Current Highlights
 
-```mermaid
-graph TB
-    subgraph Client["Frontend (React + Vite)"]
-        Home[Home Page]
-        Report[Report Page]
-        Review[Review Page]
-        Success[Success Page]
-        Track[Track Page]
-        Map[Public Map]
-        Dashboard[Department Dashboard]
-        Admin[Admin Dashboard]
-        Analytics[Analytics]
-    end
+- **Citizen reporting**: text, voice note, photo upload, category/area selection, optional contact info, anonymous submission allowed.
+- **Voice transcription**: provider adapters for `gemini`, `openai`, `whispercpp`, and `sidecar`. Gemini path includes timeout/retry and skips WAV conversion for lower latency.
+- **Hybrid routing**: rule layer → jurisdiction resolution → LLM classifier (when needed) → multi-department rules → triage fallback. Low-confidence/ambiguous cases go to triage.
+- **Zod validation**: API body/query/params are validated with descriptive 400 errors.
+- **Auth/security**: JWT auth stored in secure `HttpOnly` cookie (`Secure` in production, `SameSite=Lax`), CORS credentials enabled, cookie-auth CSRF origin guard, login rate limiting, role-based access, strict department isolation.
+- **Password storage**: scrypt hash with explicit per-user salt; legacy bcrypt hashes are still verified for compatibility.
+- **DB safety**: Mongoose queries use explicit field selection/projections.
+- **Dashboards**: department dashboard, admin triage/assignment/reroute, analytics, issues list, complaint tracking, notifications.
+- **Reports**: JSON + minimal formal report endpoint; `area` is the required field for formal report generation.
 
-    subgraph Server["Backend (Express + Node.js)"]
-        API[API Routes]
-        Auth[Auth Middleware]
-        Extraction[Extraction Service]
-        Routing[Routing Service]
-        Transcription[Transcription Service]
-        Vision[Vision Service]
-        Notify[Notification Service]
-        SLA[SLA Cron]
-    end
+## Tech Stack
 
-    subgraph Data["Data Layer"]
-        MongoDB[(MongoDB)]
-        Uploads[/uploads/]
-    end
+| Layer | Tech |
+|---|---|
+| Frontend | React 19, Vite 8, Tailwind CSS 4, React Router, react-i18next, Leaflet/Recharts, Axios |
+| Backend | Node.js 20+, Express 4, Mongoose 8, Zod, JWT, cookie-parser, bcrypt/scrypt, multer, ffmpeg, pino, helmet, cors, rate-limit |
+| AI/Media | Gemini/OpenAI Whisper/whisper.cpp/sidecar transcription, Anthropic Claude via `@anthropic-ai/sdk`, sharp/exifr |
+| Data | MongoDB 7 (Docker bind mount) |
+| Testing | Jest, Supertest, mongodb-memory-server, Playwright |
 
-    subgraph External["External Services"]
-        Claude[Claude API]
-        Whisper[Whisper API/Sidecar]
-        SMTP[SMTP Email]
-        OSM[OpenStreetMap]
-    end
+## Project Structure
 
-    Client --> API
-    API --> Auth
-    API --> Extraction
-    API --> Routing
-    API --> Transcription
-    API --> Vision
-    API --> Notify
-    Extraction --> Claude
-    Routing --> Claude
-    Vision --> Claude
-    Transcription --> Whisper
-    Notify --> SMTP
-    API --> MongoDB
-    API --> Uploads
-    Client --> OSM
-    SLA --> MongoDB
-    SLA --> Notify
+```text
+Shonglap/
+├── client/                 # React + Vite frontend
+├── server/                 # Express API, services, models, tests
+├── data/                   # Seed JSON (departments, jurisdictions, samples)
+├── docker-data/mongodb/    # Local MongoDB bind-mount data (gitignored)
+├── docs/                   # Local setup and project docs
+├── tests/e2e/              # Playwright E2E tests
+├── whisper-sidecar/        # Optional FastAPI/faster-whisper sidecar
+├── docker-compose.yml      # MongoDB service (persistent bind mount)
+├── .env.example
+└── README.md
 ```
 
-## Monorepo Structure
-
-- `/server`: Node.js Express backend with MongoDB (Mongoose), Zod validation, Whisper transcription adapters, Claude LLM integration, and comprehensive tests.
-- `/client`: React + Vite + Tailwind frontend with React Router, react-i18next (Bangla/English), react-leaflet maps, and Noto Sans Bengali font.
-- `/data`: Seed JSON files for departments and jurisdictions.
-- `/whisper-sidecar`: Python FastAPI service using faster-whisper for transcription.
-
-## Getting Started
+## Setup
 
 ### Prerequisites
 
 - Node.js 20+
-- MongoDB (local or Atlas)
+- Docker Desktop (recommended for local MongoDB)
+- ffmpeg (for non-Gemini audio conversion paths)
 
-### Environment Setup
+### Environment
 
-1. Copy `.env.example` to `.env` in the root and `/server/.env`.
-2. Configure your MongoDB URI and API keys.
+1. Copy `.env.example` to `.env` (root) and/or `server/.env` as needed by your workflow.
+2. Set required values:
 
-### Running with Docker Compose
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/shonglap
+JWT_SECRET=replace-with-a-long-random-secret
+CORS_ORIGIN=http://localhost:5173
 
-```bash
-docker-compose up --build
+TRANSCRIBE_PROVIDER=gemini
+GEMINI_API_KEY=your-gemini-key
+GEMINI_MODEL=gemini-flash-lite-latest
+MOCK_TRANSCRIPTION=false
+
+ANTHROPIC_API_KEY=your-anthropic-key
+ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+MOCK_LLM=true
 ```
 
-### Running Locally
+> For tests, use mock flags. Do not commit real secrets.
 
-#### Server
+## Run Locally
+
+### 1) Start MongoDB (persistent)
+
+```bash
+docker compose up -d
+```
+
+MongoDB data persists in `./docker-data/mongodb` via bind mount.
+
+### 2) Start backend
 
 ```bash
 cd server
 npm install
+npm run seed        # optional: seed base data
+npm run seed:demo   # optional: demo data/users
 npm run dev
 ```
 
-To run tests:
-```bash
-npm test
-```
-
-To seed the database:
-```bash
-npm run seed
-```
-
-To evaluate routing:
-```bash
-npm run eval:routing
-```
-
-#### Client
+### 3) Start frontend
 
 ```bash
 cd client
@@ -118,53 +100,80 @@ npm install
 npm run dev
 ```
 
-## Module Documentation
+- API: `http://localhost:5000`
+- Client: `http://localhost:5173`
 
-### `server/src/services/llm.js`
-Shared Claude client wrapper. Exports `callClaudeJson({system, messages, schema, mockFn})` which all LLM-dependent services reuse. Handles MOCK_LLM mode, JSON parsing, Zod validation, and one retry on failure. Strips markdown code fences from LLM output.
+## Demo Accounts
 
-### `server/src/services/extraction.js`
-Extracts structured complaint data from raw text and image descriptions. Exports `extractComplaint({text, imageDescriptions})` returning an `ExtractedComplaint` validated by Zod. Uses a system prompt with category list and urgency rubric (open manhole, live wire, gas leak = critical). MOCK_LLM mode returns deterministic keyword-based output. Missing fields computed post-extraction (area required, landmark optional).
+After `npm run seed:demo` in `server/`:
 
-### `server/src/services/routing.js`
-Hybrid routing engine. Exports `routeComplaint(extracted, location)` returning a `RoutingDecision` with primary/secondary department IDs, confidence, method (rule/llm/triage), reasoning, and needsTriage flag. Pipeline: keyword rule layer -> jurisdiction resolution (DNCC/DSCC, DPDC/DESCO) -> LLM classifier (when ambiguous) -> multi-department rules (waterlogging -> WASA + city corp) -> triage (confidence < 0.7 or spam).
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@shonglap.gov.bd` | `admin123` |
+| DNCC | `dncc@shonglap.gov.bd` | `dept123` |
+| DSCC | `dscc@shonglap.gov.bd` | `dept123` |
+| WASA | `wasa@shonglap.gov.bd` | `dept123` |
 
-### `server/src/services/transcription/`
-Multi-provider transcription service. `index.js` exports `transcribeAudio(filePath, {language})` and picks a provider from `TRANSCRIBE_PROVIDER`: openai.js (OpenAI Whisper API), whispercpp.js (whisper.cpp binary), sidecar.js (POST to sidecar URL).
+## Scripts
 
-### `server/src/services/vision.js`
-Photo analysis service. `analyzePhoto(filePath, {text})` returns `{description, detectedIssue, suggestedCategory, severity, isRelevant, exifLat, exifLng, qualityWarning, conflict}`. Validates type (jpg/png/webp) and size (<8MB), reads EXIF GPS with exifr, resizes with sharp, sends to Claude vision.
+### Root
 
-### `server/src/services/notification.js`
-Basic notification service for department and citizen notifications. Logs in test/mock mode.
+```bash
+npm run server:dev
+npm run server:test
+npm run client:dev
+npm run client:build
+```
 
-### `server/src/utils/audio.js`
-Audio preprocessing: converts any format to 16kHz mono WAV via fluent-ffmpeg. Enforces 2-minute and 10MB limits. Cleans up temp files.
+### Server
 
-### `server/src/utils/spam.js`
-Basic spam detection for complaint text.
+```bash
+npm run dev
+npm run start
+npm run seed
+npm run seed:demo
+npm run eval:routing
+npm run eval:transcription
+npm test
+```
 
-### `server/src/middleware/validate.js`
-Zod request validation middleware factory.
+## Testing
 
-### `server/src/models/`
-Mongoose models: Complaint, Department, Jurisdiction, User, Draft (TTL 1h), RoutingCorrection.
+```bash
+# Backend (Jest + Supertest + mongodb-memory-server)
+cd server
+npm test
 
-### `server/src/config/`
-- `env.js`: Zod-based environment validation on startup.
-- `db.js`: MongoDB connection helper.
+# E2E (Playwright, from repo root; expects app running)
+npx playwright test
+```
 
-### `server/src/utils/`
-- `logger.js`: Pino logger (silent in test mode).
+Current backend baseline: **16 suites, 96 tests passing** (mocked LLM/transcription in test env).
 
-### `server/src/routes/`
-- `complaints.js`: Draft, answer, submit, track endpoints.
-- `transcribe.js`: POST /api/transcribe
-- `analyze-photo.js`: POST /api/analyze-photo
+## Key API Areas
 
-### `server/scripts/`
-- `seed.js`: Seeds departments and jurisdictions from /data JSON.
-- `evalRouting.js`: Evaluates routing accuracy on sample complaints.
+- `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
+- `POST /api/complaints/draft`, `POST /api/complaints/draft/:id/answer`, `POST /api/complaints/submit`
+- `GET /api/complaints/track/:trackingId`, `GET /api/complaints/:trackingId/report`
+- `GET /api/complaints/search`, `GET /api/complaints/map`
+- `POST /api/transcribe`, `POST /api/analyze-photo`
+- `GET /api/departments/complaints`, `PATCH /api/departments/complaints/:id/status`
+- `GET /api/admin/triage`, admin assign/reroute endpoints
+- `GET /api/analytics/*`, `GET/POST /api/notifications/*`
 
-### `whisper-sidecar/`
-Python FastAPI service using faster-whisper (model large-v3, auto device). Endpoint POST /transcribe with Dhaka terms initial_prompt. Includes requirements.txt and Dockerfile.
+All request body/query/params inputs are validated; invalid input returns descriptive `400` errors.
+
+## Security Notes
+
+- JWT is stored in an `HttpOnly` cookie; browser client does not store token in `localStorage`.
+- CORS uses explicit origin with credentials.
+- Cookie-auth mutating requests include a basic origin guard.
+- Passwords use scrypt with explicit per-user salt; bcrypt legacy verification supported.
+- Department users are scoped to their own department data.
+- Uploaded files are served from `/uploads` (review access control before public production deployment).
+
+## Docs
+
+- `docs/LOCAL_MONGODB.md` - persistent local MongoDB setup
+- `docs/DEPLOYMENT.md`, `docs/DEMO_SCRIPT.md` - deployment/demo materials
+- `eval_report.md` - routing evaluation output
