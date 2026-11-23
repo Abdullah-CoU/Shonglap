@@ -5,6 +5,24 @@ import { isAuthenticated, getUser, logout, authHeaders, isAdmin } from '../auth.
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+// Popular civic-issue search suggestions (Bangla / English)
+const POPULAR_SEARCHES = [
+  { en: 'Pothole', bn: 'গর্ত' },
+  { en: 'Garbage', bn: 'ময়লা' },
+  { en: 'Mosquito', bn: 'মশা' },
+  { en: 'Water supply', bn: 'পানি' },
+  { en: 'Waterlogging', bn: 'জলাবদ্ধতা' },
+  { en: 'Street light', bn: 'বাতি' },
+  { en: 'Electricity', bn: 'বিদ্যুৎ' },
+  { en: 'Gas leak', bn: 'গ্যাস' },
+  { en: 'Traffic jam', bn: 'ট্রাফিক' },
+  { en: 'Illegal construction', bn: 'অবৈধ নির্মাণ' },
+  { en: 'Gulshan', bn: 'গুলশান' },
+  { en: 'Dhanmondi', bn: 'ধানমন্ডি' },
+  { en: 'Mirpur', bn: 'মিরপুর' },
+  { en: 'Uttara', bn: 'উত্তরা' },
+];
+
 /**
  * Shared header used on every page.
  * App icon + name navigate to Home. Functional search, staff notifications, and profile menu.
@@ -83,6 +101,12 @@ export default function Header({ compact = false, onMenuClick }) {
     navigate(`/track/${trackingId}`);
   };
 
+  const handleSuggestion = (value) => {
+    setQuery(value);
+    setSearchOpen(true);
+    // Keep dropdown open so results appear after debounce
+  };
+
   const handleLogout = () => {
     logout();
     setAuthState({ authed: false, user: null });
@@ -142,29 +166,61 @@ export default function Header({ compact = false, onMenuClick }) {
               />
             </div>
 
-            {searchOpen && query.trim() && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
-                {searchLoading ? (
-                  <p className="px-4 py-3 text-sm text-gray-500">{t('loading')}</p>
-                ) : results.length === 0 ? (
-                  <p className="px-4 py-3 text-sm text-gray-500">
-                    {i18n.language === 'bn' ? 'কোনো ফলাফল নেই' : 'No results found'}
+            {searchOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-[70vh] overflow-y-auto">
+                {/* Popular suggestions */}
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="text-sm font-semibold text-gray-800 mb-2">
+                    {i18n.language === 'bn' ? 'জনপ্রিয় অনুসন্ধান' : 'Popular right now'}
                   </p>
-                ) : (
-                  results.map((r) => (
-                    <button
-                      key={r.trackingId}
-                      onClick={() => handleSelect(r.trackingId)}
-                      className="w-full text-left px-4 py-2.5 border-b border-gray-100 hover:bg-gray-50 last:border-0"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-xs text-blue-700">{r.trackingId}</span>
-                        <span className="text-xs text-gray-400">{r.status}</span>
-                      </div>
-                      <p className="text-sm text-gray-700 truncate">{r.description}</p>
-                      <p className="text-xs text-gray-400">{r.category} · {r.area}</p>
-                    </button>
-                  ))
+                  <div className="flex flex-wrap gap-1.5">
+                    {POPULAR_SEARCHES.map((s) => {
+                      const label = i18n.language === 'bn' ? s.bn : s.en;
+                      const active = query.trim() === (i18n.language === 'bn' ? s.bn : s.en);
+                      return (
+                        <button
+                          key={s.en}
+                          type="button"
+                          onClick={() => handleSuggestion(i18n.language === 'bn' ? s.bn : s.en)}
+                          className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+                            active
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Results shown only when there's a query */}
+                {query.trim() && (
+                  <div>
+                    {searchLoading ? (
+                      <p className="px-4 py-3 text-sm text-gray-500">{t('loading')}</p>
+                    ) : results.length === 0 ? (
+                      <p className="px-4 py-3 text-sm text-gray-500">
+                        {i18n.language === 'bn' ? 'কোনো ফলাফল নেই' : 'No results found'}
+                      </p>
+                    ) : (
+                      results.map((r) => (
+                        <button
+                          key={r.trackingId}
+                          onClick={() => handleSelect(r.trackingId)}
+                          className="w-full text-left px-4 py-2.5 border-b border-gray-100 hover:bg-gray-50 last:border-0"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-mono text-xs text-blue-700">{r.trackingId}</span>
+                            <span className="text-xs text-gray-400">{r.status}</span>
+                          </div>
+                          <p className="text-sm text-gray-700 truncate">{r.description}</p>
+                          <p className="text-xs text-gray-400">{r.category} · {r.area}</p>
+                        </button>
+                      ))
+                    )}
+                  </div>
                 )}
               </div>
             )}
