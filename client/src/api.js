@@ -87,6 +87,7 @@ export const apiClient = {
     form.append('language', language);
     return api.post('/api/transcribe', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000,
     }).then((r) => r.data);
   },
 

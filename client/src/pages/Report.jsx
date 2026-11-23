@@ -102,17 +102,36 @@ export default function Report() {
     if (!audioBlob) return;
     setTranscribing(true);
     setError('');
-    try {
-      const ext = audioMime.includes('mp4') ? 'm4a' : audioMime.includes('ogg') ? 'ogg' : 'webm';
-      const file = new File([audioBlob], `recording.${ext}`, { type: audioMime });
-      const result = await apiClient.transcribe(file, 'bn');
-      setTranscript(result.transcript);
-      if (result.audioPath) setAudioPath(result.audioPath);
-    } catch (err) {
-      setError(err.response?.data?.error?.message || t('error'));
-    } finally {
-      setTranscribing(false);
+    const ext = audioMime.includes('mp4') ? 'm4a' : audioMime.includes('ogg') ? 'ogg' : 'webm';
+    const file = new File([audioBlob], `recording.${ext}`, { type: audioMime });
+
+    const maxAttempts = 2;
+    let lastErr;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const result = await apiClient.transcribe(file, 'bn');
+        const textOut = (result.transcript || '').trim();
+        if (!textOut) {
+          setError(i18n.language === 'bn'
+            ? 'কোনো কথা শনাক্ত হয়নি। স্পষ্ট করে আবার বলুন বা টাইপ করুন।'
+            : 'No speech detected. Please speak clearly and try again, or type your complaint.');
+          return;
+        }
+        setTranscript(textOut);
+        if (result.audioPath) setAudioPath(result.audioPath);
+        return;
+      } catch (err) {
+        lastErr = err;
+        if (attempt < maxAttempts) await new Promise((r) => setTimeout(r, 800));
+      } finally {
+        if (attempt === maxAttempts || !lastErr) setTranscribing(false);
+      }
     }
+
+    setError(lastErr?.response?.data?.error?.message || (i18n.language === 'bn'
+      ? 'ভয়েস ট্রান্সক্রিপশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।'
+      : 'Voice transcription failed. Please try again.'));
+    setTranscribing(false);
   };
 
   const handleSubmit = async () => {

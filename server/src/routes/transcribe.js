@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto';
 import { unlink, copyFile, mkdir } from 'fs/promises';
 import { convertToWav, cleanupTempFiles } from '../utils/audio.js';
 import { transcribeAudio } from '../services/transcription/index.js';
+import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 
 const router = express.Router();
@@ -43,13 +44,18 @@ router.post('/', upload.single('audio'), async (req, res, next) => {
     await copyFile(req.file.path, savedPath);
     const publicPath = `/uploads/${savedName}`;
 
-    // Convert to 16kHz mono WAV
-    const wavPath = await convertToWav(req.file.path);
-    tempFiles.push(wavPath);
+    // Gemini accepts common audio formats directly; skip WAV conversion for speed.
+    const skipWav = env.MOCK_TRANSCRIPTION || env.TRANSCRIBE_PROVIDER === 'gemini';
+    let transcribePath = savedPath;
+    if (!skipWav) {
+      const wavPath = await convertToWav(req.file.path);
+      tempFiles.push(wavPath);
+      transcribePath = wavPath;
+    }
 
     // Transcribe
     const language = req.body.language || 'bn';
-    const result = await transcribeAudio(wavPath, { language });
+    const result = await transcribeAudio(transcribePath, { language });
 
     res.status(200).json({
       transcript: result.text,
