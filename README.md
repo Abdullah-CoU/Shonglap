@@ -238,6 +238,7 @@ All request body/query/params inputs are validated; invalid input returns descri
 
 ## Docs
 
+- To teach the router a new known place, add an entry to `data/landmarks.json` with `name`, `aliases` (Bangla/Banglish/English, including spelling variants), `area`, `lat`, `lng`, and `type`. The resolver reloads it on server start.
 - `docs/LOCAL_MONGODB.md` - persistent local MongoDB setup
 - `docs/DEPLOYMENT.md`, `docs/DEMO_SCRIPT.md` - deployment/demo materials
 - `eval_report.md` - routing evaluation output

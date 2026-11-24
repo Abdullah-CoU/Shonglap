@@ -28,6 +28,20 @@ describe('Landmark gazetteer', () => {
     expect(hit.area).toBe('Mirpur');
   });
 
+  test('finds Jigatola bus stand from the reported complaint text', () => {
+    const text = 'জিগাতলা বাস স্ট্যান্ডের পাশে এখানে ময়লার যে ডাস্টবিনটা আছে সেখান থেকে অনেক বেশি দুর্গন্ধ ছড়াচ্ছে আমাদের বাসায় থাকা যাচ্ছে না।';
+    const hit = resolveLandmark(text);
+    expect(hit).not.toBeNull();
+    expect(hit.area).toBe('Dhanmondi');
+    expect(hit.landmark).toBe('Jigatola Bus Stand');
+  });
+
+  test('new bus stands and markets are recognized', () => {
+    expect(resolveLandmark('করওয়ান বাজারের কাছে গর্ত')?.area).toBe('Tejgaon');
+    expect(resolveLandmark('পল্টন বাস স্ট্যান্ডে ট্রাফিক')?.area).toBe('Motijheel');
+    expect(resolveLandmark('নিকুঞ্জ বাস স্ট্যান্ডের পাশে ময়লা')?.area).toBe('Uttara');
+  });
+
   test('finds a shop/market name', () => {
     const hit = resolveLandmark('gate broken at Uttara Rajuk Market');
     expect(hit?.area).toBe('Uttara');
