@@ -9,7 +9,9 @@ import { Draft } from '../models/Draft.js';
 import { extractComplaint } from '../services/extraction.js';
 import { routeComplaint } from '../services/routing.js';
 import { fireNotifications } from '../services/notify.js';import { checkSpam } from '../utils/spam.js';
-import { findDuplicates, addSupporter } from '../services/duplicate.js';import { validate, validateParams, validateQuery } from '../middleware/validate.js';
+import { findDuplicates, addSupporter } from '../services/duplicate.js';
+import { reactToComplaint } from '../services/reactions.js';
+import { validate, validateParams, validateQuery } from '../middleware/validate.js';
 import { logger } from '../utils/logger.js';
 import { env } from '../config/env.js';
 const router = express.Router();
@@ -63,6 +65,11 @@ const mapQuerySchema = z.object({
   category: z.string().trim().max(50).optional(),
   status: z.enum(['received', 'assigned', 'in_progress', 'resolved', 'rejected', 'triage']).optional(),
   urgency: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+});
+
+const reactionSchema = z.object({
+  type: z.enum(['up', 'down']),
+  action: z.enum(['add', 'remove']).default('add'),
 });
 
 // Helper: generate tracking ID
@@ -393,6 +400,17 @@ router.post('/:trackingId/support', validateParams(trackingIdParam), async (req,
   }
 });
 
+// POST /api/complaints/:trackingId/react - upvote/downvote a complaint
+router.post('/:trackingId/react', validateParams(trackingIdParam), validate(reactionSchema), async (req, res, next) => {
+  try {
+    const { type, action } = req.validated;
+    const counts = await reactToComplaint(req.validatedParams.trackingId, type, action);
+    res.status(200).json({ ok: true, ...counts });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // POST /api/complaints/submit
 const submitMiddlewares = (env.NODE_ENV === 'test' || env.MOCK_LLM)
   ? [validate(submitSchema)]
@@ -568,7 +586,7 @@ router.get('/search', async (req, res, next) => {
     }
 
     const results = await Complaint.find({ $or: orClauses })
-      .select('trackingId category area description status urgency createdAt')
+      .select('trackingId category area description status urgency createdAt upvotes downvotes')
       .sort({ createdAt: -1 })
       .limit(10)
       .lean();
@@ -589,7 +607,7 @@ router.get('/map', validateQuery(mapQuerySchema), async (req, res, next) => {
     if (urgency) filter.urgency = urgency;
 
     const complaints = await Complaint.find(filter)
-      .select('trackingId category status urgency area location createdAt supporters')
+      .select('trackingId category status urgency area location createdAt supporters upvotes downvotes')
       .lean();
 
     const markers = complaints
@@ -603,6 +621,8 @@ router.get('/map', validateQuery(mapQuerySchema), async (req, res, next) => {
         lat: c.location.coordinates[1],
         lng: c.location.coordinates[0],
         supporters: c.supporters,
+        upvotes: c.upvotes || 0,
+        downvotes: c.downvotes || 0,
         createdAt: c.createdAt,
       }));
 
@@ -638,7 +658,7 @@ router.get('/:trackingId/report', validateParams(trackingIdParam), async (req, r
 router.get('/track/:trackingId', validateParams(trackingIdParam), async (req, res, next) => {
   try {
     const complaint = await Complaint.findOne({ trackingId: req.validatedParams.trackingId })
-      .select('trackingId category description area urgency status statusLog createdAt updatedAt')
+      .select('trackingId category description area urgency status statusLog createdAt updatedAt upvotes downvotes')
       .lean();
 
     if (!complaint) {
@@ -652,6 +672,8 @@ router.get('/track/:trackingId', validateParams(trackingIdParam), async (req, re
       area: complaint.area,
       urgency: complaint.urgency,
       status: complaint.status,
+      upvotes: complaint.upvotes || 0,
+      downvotes: complaint.downvotes || 0,
       timeline: (complaint.statusLog || []).map((entry) => ({
         status: entry.status,
         note: entry.note,

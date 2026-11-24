@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import ReactionButtons from '../components/ReactionButtons.jsx';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -164,6 +165,7 @@ export default function Issues() {
               <th className="text-left px-4 py-3 font-medium text-gray-600">{t('urgencyCol')}</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">{t('statusCol')}</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">{t('date')}</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">{i18n.language === 'bn' ? 'প্রতিক্রিয়া' : 'Reaction'}</th>
             </tr>
           </thead>
           <tbody>
@@ -183,10 +185,13 @@ export default function Issues() {
                   <span className={`px-2 py-1 rounded-full text-xs ${STATUS_COLORS[c.status] || 'bg-gray-100'}`}>{c.status}</span>
                 </td>
                 <td className="px-4 py-3 text-xs text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3">
+                  <ReactionButtons trackingId={c.trackingId} upvotes={c.upvotes} downvotes={c.downvotes} compact />
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">
+              <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">
                 {loading ? t('loading') : t('noComplaints')}
               </td></tr>
             )}

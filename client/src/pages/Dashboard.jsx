@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { isAuthenticated, getUser, logout } from '../auth.js';
+import ReactionButtons from '../components/ReactionButtons.jsx';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -163,6 +164,7 @@ export default function Dashboard() {
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Urgency</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Reaction</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Actions</th>
                 </tr>
               </thead>
@@ -184,6 +186,9 @@ export default function Dashboard() {
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-500">
                       {new Date(c.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      <ReactionButtons trackingId={c.trackingId} upvotes={c.upvotes} downvotes={c.downvotes} compact />
                     </td>
                     <td className="px-4 py-3">
                       <button

@@ -49,6 +49,8 @@ const complaintSchema = new mongoose.Schema({
   contactEmail: { type: String, default: '' },
   language: { type: String, enum: ['bn', 'en', 'banglish'], default: 'bn' },
   supporters: { type: Number, default: 0 },
+  upvotes: { type: Number, default: 0 },
+  downvotes: { type: Number, default: 0 },
   attachments: [{
     type: { type: String, enum: ['photo', 'audio'], required: true },
     path: { type: String, required: true },

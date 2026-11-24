@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api.js';
 import ReportModal from '../components/ReportModal.jsx';
+import ReactionButtons from '../components/ReactionButtons.jsx';
 
 const STATUS_COLORS = {
   received: 'bg-blue-100 text-blue-800',
@@ -116,6 +117,14 @@ export default function Track() {
                   <span className="ml-2 text-gray-900">{complaint.area}</span>
                 </div>
               )}
+              <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
+                <span className="text-sm text-gray-500">{t('reaction') || 'Reaction'}:</span>
+                <ReactionButtons
+                  trackingId={complaint.trackingId}
+                  upvotes={complaint.upvotes}
+                  downvotes={complaint.downvotes}
+                />
+              </div>
             </div>
 
             <div className="glass rounded-lg p-4">
