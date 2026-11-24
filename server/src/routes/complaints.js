@@ -11,6 +11,7 @@ import { routeComplaint } from '../services/routing.js';
 import { fireNotifications } from '../services/notify.js';import { checkSpam } from '../utils/spam.js';
 import { findDuplicates, addSupporter } from '../services/duplicate.js';
 import { reactToComplaint } from '../services/reactions.js';
+import { buildDepartmentParts } from '../services/departmentParts.js';
 import { validate, validateParams, validateQuery } from '../middleware/validate.js';
 import { logger } from '../utils/logger.js';
 import { env } from '../config/env.js';
@@ -38,6 +39,8 @@ const draftSchema = z.object({
   contactPhone: z.string().optional().default(''),
   contactEmail: z.string().optional().default(''),
   language: z.enum(['bn', 'en', 'banglish']).optional().default('bn'),
+  secondaryDepartmentId: z.string().regex(/^[a-fA-F0-9]{24}$/, 'Invalid department ID').optional().or(z.literal('')),
+  secondaryNote: z.string().max(1000).optional().default(''),
 });
 
 const answerSchema = z.object({
@@ -91,6 +94,21 @@ const generateTrackingId = async () => {
 
   return `${prefix}${String(seq).padStart(4, '0')}`;
 };
+
+/**
+ * Ensure a citizen-selected secondary department exists.
+ * @param {string} [id]
+ */
+async function validateSecondaryDepartment(id) {
+  if (!id) return null;
+  const dept = await Department.findById(id).select('_id nameEn nameBn jurisdictionType').lean();
+  if (!dept) {
+    const error = new Error('Selected department does not exist');
+    error.status = 400;
+    throw error;
+  }
+  return dept;
+}
 
 // Area to coordinates mapping for Dhaka
 const AREA_COORDS = {
@@ -188,6 +206,8 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
       });
     }
 
+    await validateSecondaryDepartment(inputs.secondaryDepartmentId);
+
     // Run extraction
     const extracted = await extractComplaint({ text: mergedText });
 
@@ -201,7 +221,9 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
     }
 
     // Run routing
-    const routing = await routeComplaint(extracted, location);
+    const routing = await routeComplaint(extracted, location, {
+      secondaryDepartmentId: inputs.secondaryDepartmentId,
+    });
 
     // Get department names for routing response
     const primaryDept = routing.primaryDepartmentId
@@ -293,13 +315,17 @@ router.post('/draft/:id/answer', validateParams(draftIdParam), validate(answerSc
       });
     }
 
+    await validateSecondaryDepartment(inputs.secondaryDepartmentId);
+
     const extracted = await extractComplaint({ text: mergedText });
 
     let location = inputs.lat && inputs.lng ? { lat: inputs.lat, lng: inputs.lng } : null;
     if (!location && inputs.area) location = resolveCoords(inputs.area);
     if (!location && extracted.area) location = resolveCoords(extracted.area);
 
-    const routing = await routeComplaint(extracted, location);
+    const routing = await routeComplaint(extracted, location, {
+      secondaryDepartmentId: inputs.secondaryDepartmentId,
+    });
 
     const primaryDept = routing.primaryDepartmentId
       ? await Department.findById(routing.primaryDepartmentId).select('_id nameEn nameBn jurisdictionType email phone').lean()
@@ -426,6 +452,8 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
 
     const { inputs, extracted, routing: routingData } = draft.data;
 
+    await validateSecondaryDepartment(inputs.secondaryDepartmentId);
+
     // Duplicate detection (unless forced)
     // Resolve location for duplicate check
     let submitLat = inputs.lat;
@@ -477,11 +505,14 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
       });
     }
     for (const secId of routingData.secondaryDepartmentIds || []) {
+      const citizenChosen = String(secId) === String(inputs.secondaryDepartmentId || '');
       routingEntries.push({
         department: secId,
         isPrimary: false,
-        assignedBy: 'auto',
-        reason: 'Secondary department for multi-department issue',
+        assignedBy: citizenChosen ? 'citizen' : 'auto',
+        reason: citizenChosen
+          ? 'Citizen reported this office is also involved'
+          : 'Secondary department for multi-department issue',
       });
     }
 
@@ -492,6 +523,23 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
     }
 
     const finalStatus = !needsTriage && routingData.primaryDepartmentId ? 'assigned' : initialStatus;
+
+    const routedIds = [
+      ...(routingData.primaryDepartmentId ? [routingData.primaryDepartmentId] : []),
+      ...(routingData.secondaryDepartmentIds || []),
+    ];
+    const deptDocs = routedIds.length
+      ? await Department.find({ _id: { $in: routedIds } }).select('_id nameEn nameBn jurisdictionType').lean()
+      : [];
+    const departmentsById = Object.fromEntries(deptDocs.map((d) => [d._id.toString(), d]));
+    const departmentParts = buildDepartmentParts({
+      routing: routingData,
+      extracted,
+      departmentsById,
+      citizenDepartmentId: inputs.secondaryDepartmentId,
+      citizenNote: inputs.secondaryNote,
+      status: finalStatus,
+    });
 
     const complaint = await Complaint.create({
       trackingId,
@@ -520,6 +568,7 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
         ...(inputs.audioPath ? [{ type: 'audio', path: inputs.audioPath, meta: { language: extracted.languageDetected } }] : []),
       ],
       routing: routingEntries,
+      departmentParts,
       statusLog,
     });
 
@@ -658,7 +707,8 @@ router.get('/:trackingId/report', validateParams(trackingIdParam), async (req, r
 router.get('/track/:trackingId', validateParams(trackingIdParam), async (req, res, next) => {
   try {
     const complaint = await Complaint.findOne({ trackingId: req.validatedParams.trackingId })
-      .select('trackingId category description area urgency status statusLog createdAt updatedAt upvotes downvotes')
+      .select('trackingId category description area urgency status statusLog createdAt updatedAt upvotes downvotes departmentParts')
+      .populate('departmentParts.department', '_id nameEn nameBn jurisdictionType')
       .lean();
 
     if (!complaint) {
@@ -674,6 +724,16 @@ router.get('/track/:trackingId', validateParams(trackingIdParam), async (req, re
       status: complaint.status,
       upvotes: complaint.upvotes || 0,
       downvotes: complaint.downvotes || 0,
+      shared: (complaint.departmentParts || []).length > 1,
+      departments: (complaint.departmentParts || []).map((part) => ({
+        id: part.department?._id || part.department,
+        nameEn: part.department?.nameEn || '',
+        nameBn: part.department?.nameBn || '',
+        aspect: part.aspect,
+        role: part.role,
+        status: part.status,
+        description: part.description,
+      })),
       timeline: (complaint.statusLog || []).map((entry) => ({
         status: entry.status,
         note: entry.note,

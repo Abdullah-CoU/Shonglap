@@ -260,7 +260,7 @@ Classify this complaint and return JSON.`;
 /**
  * Route a complaint to the appropriate department(s).
  */
-export async function routeComplaint(extracted, location = null) {
+export async function routeComplaint(extracted, location = null, options = {}) {
   const normLocation = normalizeLocation(location);
   const departments = await Department.find({}).select('_id nameEn nameBn email responsibilities keywords jurisdictionType slaHours').lean();
   const jurisdictions = await Jurisdiction.find({}).select('_id department areaName wards verified').populate('department', '_id nameEn nameBn email responsibilities keywords jurisdictionType slaHours').lean();
@@ -402,6 +402,12 @@ export async function routeComplaint(extracted, location = null) {
     confidence = 0.2;
     reasoning = 'Invalid department ID returned';
   }
+  // A citizen can explicitly say the problem also concerns another office.
+  if (options.secondaryDepartmentId && deptMap.has(String(options.secondaryDepartmentId))) {
+    const extraId = String(options.secondaryDepartmentId);
+    if (extraId !== primaryId && !secondaryIds.includes(extraId)) secondaryIds.push(extraId);
+  }
+
   secondaryIds = [...new Set(secondaryIds.filter((id) => deptMap.has(id) && id !== primaryId))];
 
   // Step 5: Triage

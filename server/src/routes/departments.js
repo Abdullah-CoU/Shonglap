@@ -6,6 +6,7 @@ import { requireAuth, requireRole, requireDepartment, departmentScope } from '..
 import { validate, validateParams, validateQuery } from '../middleware/validate.js';
 import { sendStatusUpdate } from '../services/notify.js';
 import { logger } from '../utils/logger.js';
+import { partForDepartment } from '../services/departmentParts.js';
 
 const router = express.Router();
 
@@ -26,6 +27,22 @@ const complaintsQuerySchema = z.object({
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
 });
+
+/** Shape a complaint for a department office: only its own part is visible. */
+function scopedForOffice(complaint, departmentId) {
+  const part = partForDepartment(complaint, departmentId);
+  const allCount = (complaint.departmentParts || complaint.routing || []).length;
+  return {
+    ...complaint,
+    myPart: part,
+    displayDescription: part.description || complaint.description,
+    shared: allCount > 1,
+    otherOfficesCount: Math.max(0, allCount - 1),
+    routing: (complaint.routing || []).filter(
+      (r) => r.department?._id?.toString() === String(departmentId) || r.department?.toString() === String(departmentId)
+    ),
+  };
+}
 
 // List all departments (for admin picker)
 router.get('/', async (req, res, next) => {
@@ -59,7 +76,7 @@ router.get('/complaints', requireAuth, requireRole('department', 'admin'), requi
     }
 
     const complaints = await Complaint.find(filter)
-      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes')
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts')
       .sort({ urgency: -1, createdAt: -1 })
       .lean();
 
@@ -67,7 +84,9 @@ router.get('/complaints', requireAuth, requireRole('department', 'admin'), requi
     const urgencyOrder = { critical: 0, high: 1, medium: 2, low: 3 };
     complaints.sort((a, b) => (urgencyOrder[a.urgency] || 3) - (urgencyOrder[b.urgency] || 3));
 
-    res.status(200).json({ complaints, total: complaints.length });
+    const deptId = req.dbUser.role === 'department' ? req.dbUser.department?._id : null;
+    const shaped = deptId ? complaints.map((c) => scopedForOffice(c, deptId)) : complaints;
+    res.status(200).json({ complaints: shaped, total: shaped.length });
   } catch (err) {
     next(err);
   }
@@ -77,7 +96,7 @@ router.get('/complaints', requireAuth, requireRole('department', 'admin'), requi
 router.get('/complaints/:id', requireAuth, requireRole('department', 'admin'), requireDepartment, validateParams(objectIdParam), async (req, res, next) => {
   try {
     const complaint = await Complaint.findById(req.validatedParams.id)
-      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes')
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts')
       .populate('routing.department', '_id nameEn nameBn jurisdictionType')
       .lean();
 
@@ -94,6 +113,25 @@ router.get('/complaints/:id', requireAuth, requireRole('department', 'admin'), r
       }
     }
 
+    if (req.dbUser.role === 'department' && req.dbUser.department) {
+      const deptId = req.dbUser.department._id;
+      const part = partForDepartment(complaint, deptId);
+      const scoped = scopedForOffice(complaint, deptId);
+      res.status(200).json({
+        complaint: scoped,
+        view: {
+          department: { id: deptId, nameEn: req.dbUser.department.nameEn, nameBn: req.dbUser.department.nameBn },
+          aspect: part.aspect,
+          description: part.description,
+          role: part.role,
+          status: part.status,
+          shared: scoped.shared,
+          otherOfficesCount: scoped.otherOfficesCount,
+        },
+      });
+      return;
+    }
+
     res.status(200).json({ complaint });
   } catch (err) {
     next(err);
@@ -106,7 +144,7 @@ router.patch('/complaints/:id/status', requireAuth, requireRole('department', 'a
     const { status, note, resolutionPhoto } = req.validated;
 
     const complaint = await Complaint.findById(req.validatedParams.id)
-      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes');
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts');
     if (!complaint) {
       return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
     }
@@ -120,13 +158,45 @@ router.patch('/complaints/:id/status', requireAuth, requireRole('department', 'a
       }
     }
 
-    complaint.status = status;
-    complaint.statusLog.push({
-      status,
-      note: note || `Status updated to ${status}`,
-      actor: req.dbUser.name || req.dbUser.email,
-      at: new Date(),
-    });
+    const actor = req.dbUser.name || req.dbUser.email;
+    const officeId = req.dbUser.role === 'department' ? req.dbUser.department?._id : null;
+    const ownPart = officeId
+      ? (complaint.departmentParts || []).find((part) => part.department?.toString() === officeId.toString())
+      : null;
+
+    if (ownPart) {
+      // Cross-department complaint: this office only updates its own part.
+      ownPart.status = status;
+      ownPart.statusLog.push({
+        status,
+        note: note || `Status updated to ${status}`,
+        actor,
+        at: new Date(),
+      });
+      const all = complaint.departmentParts.map((part) => part.status);
+      complaint.status = all.every((s) => s === 'resolved')
+        ? 'resolved'
+        : all.includes('in_progress')
+          ? 'in_progress'
+          : all.includes('assigned')
+            ? 'assigned'
+            : all.includes('triage') ? 'triage' : 'received';
+      complaint.statusLog.push({
+        status: complaint.status,
+        note: `Office part updated to ${status}`,
+        actor,
+        at: new Date(),
+      });
+    } else {
+      // Legacy / single-office complaint.
+      complaint.status = status;
+      complaint.statusLog.push({
+        status,
+        note: note || `Status updated to ${status}`,
+        actor,
+        at: new Date(),
+      });
+    }
 
     if (resolutionPhoto) {
       complaint.attachments.push({
@@ -138,13 +208,13 @@ router.patch('/complaints/:id/status', requireAuth, requireRole('department', 'a
 
     await complaint.save();
 
-    // Send status update to citizen
     const leanComplaint = complaint.toObject();
     sendStatusUpdate(leanComplaint, status, note).catch((e) =>
       logger.error({ err: e.message }, 'Status update notification failed')
     );
 
-    res.status(200).json({ complaint: leanComplaint });
+    const shaped = officeId ? scopedForOffice(leanComplaint, officeId) : leanComplaint;
+    res.status(200).json({ complaint: shaped, view: ownPart ? { aspect: ownPart.aspect, description: ownPart.description, status: ownPart.status, role: ownPart.role } : null });
   } catch (err) {
     next(err);
   }

@@ -107,6 +107,17 @@ export default function Track() {
                   {t(complaint.urgency)}
                 </span>
               </div>
+              {complaint.shared && (
+                <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 space-y-2">
+                  <p className="text-sm font-semibold text-purple-900">🤝 {t('sharedComplaint') || 'Shared with multiple offices'}</p>
+                  {(complaint.departments || []).map((d, i) => (
+                    <div key={i} className="text-xs text-gray-700 flex justify-between gap-2">
+                      <span>{d.nameBn || d.nameEn} <span className="text-gray-400">({d.role})</span></span>
+                      <span className="text-purple-700">{d.status}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div>
                 <span className="text-sm text-gray-500">{t('textDescription')}</span>
                 <p className="text-gray-900 mt-1">{complaint.description}</p>

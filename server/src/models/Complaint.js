@@ -59,8 +59,27 @@ const complaintSchema = new mongoose.Schema({
   routing: [{
     department: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', required: true },
     isPrimary: { type: Boolean, default: true },
-    assignedBy: { type: String, enum: ['auto', 'manual'], default: 'auto' },
+    assignedBy: { type: String, enum: ['auto', 'manual', 'citizen'], default: 'auto' },
     reason: { type: String, default: '' }
+  }],
+  // Per-office slice of a complaint that spans more than one department.
+  departmentParts: [{
+    department: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', required: true },
+    role: { type: String, enum: ['primary', 'secondary'], default: 'secondary' },
+    aspect: { type: String, default: '' },
+    description: { type: String, default: '' },
+    reason: { type: String, default: '' },
+    status: {
+      type: String,
+      enum: ['received', 'assigned', 'in_progress', 'resolved', 'rejected', 'triage'],
+      default: 'assigned',
+    },
+    statusLog: [{
+      status: { type: String, required: true },
+      note: { type: String, default: '' },
+      actor: { type: String, default: 'system' },
+      at: { type: Date, default: Date.now }
+    }]
   }],
   statusLog: [{
     status: { type: String, required: true },

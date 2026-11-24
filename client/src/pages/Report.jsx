@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api.js';
@@ -10,6 +10,8 @@ const AREAS = [
   'Old Dhaka', 'Jatrabari', 'Wari', 'Lalbagh', 'Sutrapur', 'Gendaria',
   'Shyampur', 'Demra', 'Kadamtali', 'Mohammadpur', 'Adabar', 'Hazaribagh', 'Savar',
 ];
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export default function Report() {
   const { t, i18n } = useTranslation();
@@ -33,6 +35,17 @@ export default function Report() {
   const [transcribing, setTranscribing] = useState(false);
   const [privacyBlur, setPrivacyBlur] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(location.state?.category?.key || null);
+  const [departments, setDepartments] = useState([]);
+  const [multiDept, setMultiDept] = useState(false);
+  const [secondaryDepartmentId, setSecondaryDepartmentId] = useState('');
+  const [secondaryNote, setSecondaryNote] = useState('');
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/departments`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data) setDepartments(data.departments || []); })
+      .catch(() => {});
+  }, []);
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -145,6 +158,8 @@ export default function Report() {
         contactPhone,
         contactEmail,
         language: 'bn',
+        secondaryDepartmentId: multiDept ? secondaryDepartmentId : '',
+        secondaryNote: multiDept ? secondaryNote : '',
       };
 
       const draft = await apiClient.createDraft(draftData);
@@ -176,6 +191,56 @@ export default function Report() {
           onSelect={handleCategorySelect}
           title={i18n.language === 'bn' ? 'সমস্যা জানান' : 'What is the problem?'}
         />
+
+        {/* Cross-department issue */}
+        <div className="glass rounded-lg p-4 space-y-3">
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={multiDept}
+              onChange={(e) => setMultiDept(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600"
+            />
+            <span className="text-sm font-medium text-gray-800">
+              {i18n.language === 'bn'
+                ? 'এই সমস্যাটি একাধিক বিভাগের সাথে সম্পর্কিত'
+                : 'This problem involves another department too'}
+            </span>
+          </label>
+          {multiDept && (
+            <div className="space-y-3 pl-6">
+              <div>
+                <label htmlFor="secondary-department" className="block text-xs font-medium text-gray-600 mb-1">
+                  {i18n.language === 'bn' ? 'অন্য বিভাগ' : 'Other department'}
+                </label>
+                <select
+                  id="secondary-department"
+                  value={secondaryDepartmentId}
+                  onChange={(e) => setSecondaryDepartmentId(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="">{i18n.language === 'bn' ? 'বিভাগ নির্বাচন করুন' : 'Select department'}</option>
+                  {departments.map((d) => (
+                    <option key={d._id} value={d._id}>{d.nameBn} / {d.nameEn}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="secondary-note" className="block text-xs font-medium text-gray-600 mb-1">
+                  {i18n.language === 'bn' ? 'এই বিভাগের কী কাজ করতে হবে?' : 'What should this office handle?'}
+                </label>
+                <textarea
+                  id="secondary-note"
+                  value={secondaryNote}
+                  onChange={(e) => setSecondaryNote(e.target.value)}
+                  rows={2}
+                  placeholder={i18n.language === 'bn' ? 'যেমন: ড্রেনের পানি নিকাশি...' : 'e.g. blocked drainage channel...'}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Text description */}
         <div>

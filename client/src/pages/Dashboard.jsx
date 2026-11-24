@@ -171,7 +171,10 @@ export default function Dashboard() {
               <tbody>
                 {complaints.map((c) => (
                   <tr key={c._id} className="border-b border-white/15 border-gray-100 hover:bg-gray-50">
-                    <td className="px-4 py-3 font-mono text-xs">{c.trackingId}</td>
+                    <td className="px-4 py-3 font-mono text-xs">
+                      {c.trackingId}
+                      {c.shared && <span className="ml-2 px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 text-[10px]">Shared</span>}
+                    </td>
                     <td className="px-4 py-3">{c.category}</td>
                     <td className="px-4 py-3">{c.area}</td>
                     <td className="px-4 py-3">
@@ -223,7 +226,7 @@ export default function Dashboard() {
 
 function ComplaintDetail({ complaint, onClose, onRefresh }) {
   const { t } = useTranslation();
-  const [status, setStatus] = useState(complaint.status);
+  const [status, setStatus] = useState(complaint.myPart?.status || complaint.status);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -262,8 +265,18 @@ function ComplaintDetail({ complaint, onClose, onRefresh }) {
           <p><strong>Category:</strong> {complaint.category}</p>
           <p><strong>Area:</strong> {complaint.area}</p>
           <p><strong>Urgency:</strong> {complaint.urgency}</p>
-          <p><strong>Status:</strong> {complaint.status}</p>
-          <p><strong>Description:</strong> {complaint.description}</p>
+          <p><strong>Status:</strong> {complaint.myPart?.status || complaint.status}</p>
+          {complaint.shared && (
+            <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 space-y-1">
+              <p className="font-semibold text-blue-900">
+                {t('yourOfficePart') || 'Your office part'}
+                {complaint.otherOfficesCount > 0 && ` — shared with ${complaint.otherOfficesCount} other office(s)`}
+              </p>
+              {complaint.myPart?.aspect && <p><strong>Aspect:</strong> {complaint.myPart.aspect}</p>}
+              <p><strong>Role:</strong> {complaint.myPart?.role}</p>
+            </div>
+          )}
+          <p><strong>{complaint.myPart ? 'Your part' : 'Description'}:</strong> {complaint.displayDescription || complaint.description}</p>
           {complaint.descriptionBn && <p><strong>Bangla:</strong> {complaint.descriptionBn}</p>}
           {complaint.landmark && <p><strong>Landmark:</strong> {complaint.landmark}</p>}
           {complaint.contactPhone && <p><strong>Phone:</strong> {complaint.contactPhone}</p>}
