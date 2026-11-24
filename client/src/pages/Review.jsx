@@ -265,6 +265,26 @@ export default function Review() {
           )}
         </div>
 
+        {/* Agentic routing self-verification */}
+        {draft.verification && (
+          <div className={`rounded-lg p-3 text-sm border ${draft.verification.verified
+            ? 'bg-green-50 border-green-200 text-green-800'
+            : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
+            <p className="font-semibold">
+              {draft.verification.verified
+                ? (i18n.language === 'bn' ? 'রাউটিং যাচাইকৃত' : 'Routing verified')
+                : (i18n.language === 'bn' ? 'রাউটিং পর্যালোচনা প্রয়োজন' : 'Routing needs review')}
+            </p>
+            {!draft.verification.verified && (
+              <ul className="mt-1 list-disc pl-5 space-y-0.5">
+                {draft.verification.checks.filter((c) => c.status === 'review').map((c, i) => (
+                  <li key={i}>Problem {c.index}: {c.reason}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
         {/* Automatically detected problem parts */}
         {draft.parts && draft.parts.length > 0 && (
           <div className="glass rounded-lg p-4 space-y-2">

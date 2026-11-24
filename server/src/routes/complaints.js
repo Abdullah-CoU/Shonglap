@@ -13,7 +13,9 @@ import { findDuplicates, addSupporter } from '../services/duplicate.js';
 import { reactToComplaint } from '../services/reactions.js';
 import { buildDepartmentParts } from '../services/departmentParts.js';
 import { segmentComplaint } from '../services/segmentation.js';
+import { aiDraftLimiter, searchLimiter } from '../middleware/rateLimits.js';
 import { resolveComplaintLocation } from '../services/geocode.js';
+import { verifyRouting } from '../services/verification.js';
 import { validate, validateParams, validateQuery } from '../middleware/validate.js';
 import { logger } from '../utils/logger.js';
 import { env } from '../config/env.js';
@@ -180,7 +182,7 @@ const checkConflicts = (extracted, photoAnalyses) => {
 };
 
 // POST /api/complaints/draft
-router.post('/draft', validate(draftSchema), async (req, res, next) => {
+router.post('/draft', aiDraftLimiter, validate(draftSchema), async (req, res, next) => {
   try {
     const inputs = req.validated;
 
@@ -223,6 +225,11 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
       ? await Department.find({ _id: { $in: partDeptIds } }).select('_id nameEn nameBn jurisdictionType').lean()
       : [];
     const partDeptMap = Object.fromEntries(partDeptDocs.map((d) => [d._id.toString(), d]));
+    const verification = verifyRouting({
+      parts,
+      area: extracted.area,
+      departmentsById: partDeptMap,
+    });
 
     // Get department names for routing response
     const primaryDept = routing.primaryDepartmentId
@@ -255,6 +262,7 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
       followUpQuestions,
       conflicts,
       parts,
+      verification,
       confirmed: false,
     };
 
@@ -263,6 +271,7 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
     res.status(201).json({
       draftId: draft.sessionId,
       extracted,
+      verification,
       parts: parts.map((part, i) => ({
         index: i + 1,
         category: part.category,
@@ -298,7 +307,7 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
 });
 
 // POST /api/complaints/draft/:id/answer
-router.post('/draft/:id/answer', validateParams(draftIdParam), validate(answerSchema), async (req, res, next) => {
+router.post('/draft/:id/answer', aiDraftLimiter, validateParams(draftIdParam), validate(answerSchema), async (req, res, next) => {
   try {
     const draft = await Draft.findOne({ sessionId: req.validatedParams.id }).select('_id sessionId data createdAt updatedAt');
     if (!draft) {
@@ -348,6 +357,11 @@ router.post('/draft/:id/answer', validateParams(draftIdParam), validate(answerSc
       ? await Department.find({ _id: { $in: partDeptIds } }).select('_id nameEn nameBn jurisdictionType').lean()
       : [];
     const partDeptMap = Object.fromEntries(partDeptDocs.map((d) => [d._id.toString(), d]));
+    const verification = verifyRouting({
+      parts,
+      area: extracted.area,
+      departmentsById: partDeptMap,
+    });
 
     const primaryDept = routing.primaryDepartmentId
       ? await Department.findById(routing.primaryDepartmentId).select('_id nameEn nameBn jurisdictionType email phone').lean()
@@ -365,6 +379,7 @@ router.post('/draft/:id/answer', validateParams(draftIdParam), validate(answerSc
       inputs,
       extracted,
       parts,
+      verification,
       routing: {
         primaryDepartmentId: routing.primaryDepartmentId,
         secondaryDepartmentIds: routing.secondaryDepartmentIds,
@@ -383,6 +398,7 @@ router.post('/draft/:id/answer', validateParams(draftIdParam), validate(answerSc
     res.status(200).json({
       draftId: draft.sessionId,
       extracted,
+      verification,
       parts: parts.map((part, i) => ({
         index: i + 1,
         category: part.category,
@@ -558,6 +574,11 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
       ? await Department.find({ _id: { $in: routedIds } }).select('_id nameEn nameBn jurisdictionType').lean()
       : [];
     const departmentsById = Object.fromEntries(deptDocs.map((d) => [d._id.toString(), d]));
+    const verification = draft.data.verification || verifyRouting({
+      parts: segmentParts,
+      area: extracted.area,
+      departmentsById,
+    });
     const departmentParts = buildDepartmentParts({
       parts: segmentParts,
       departmentsById,
@@ -600,6 +621,7 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
       area: extracted.area || inputs.area || 'Unknown',
       ward: extracted.ward,
       landmark: extracted.landmark,
+      routingVerification: verification,
       locationSource: extracted.locationSource || 'unknown',
       locationConfidence: extracted.locationConfidence || 0,
       matchedLandmark: extracted.matchedLandmark || '',
@@ -661,7 +683,7 @@ const SEARCH_TERM_MAP = {
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-router.get('/search', async (req, res, next) => {
+router.get('/search', searchLimiter, async (req, res, next) => {
   try {
     const q = (req.query.q || '').trim();
     if (!q) return res.status(200).json({ results: [] });
@@ -759,7 +781,7 @@ router.get('/:trackingId/report', validateParams(trackingIdParam), async (req, r
 router.get('/track/:trackingId', validateParams(trackingIdParam), async (req, res, next) => {
   try {
     const complaint = await Complaint.findOne({ trackingId: req.validatedParams.trackingId })
-      .select('trackingId category description area urgency status statusLog createdAt updatedAt upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark')
+      .select('trackingId category description area urgency status statusLog createdAt updatedAt upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark routingVerification')
       .populate('departmentParts.department', '_id nameEn nameBn jurisdictionType')
       .lean();
 
@@ -773,6 +795,7 @@ router.get('/track/:trackingId', validateParams(trackingIdParam), async (req, re
       description: complaint.description,
       area: complaint.area,
       locationSource: complaint.locationSource || 'unknown',
+      routingVerification: complaint.routingVerification || null,
       matchedLandmark: complaint.matchedLandmark || '',
       urgency: complaint.urgency,
       status: complaint.status,

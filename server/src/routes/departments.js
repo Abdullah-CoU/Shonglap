@@ -76,7 +76,7 @@ router.get('/complaints', requireAuth, requireRole('department', 'admin'), requi
     }
 
     const complaints = await Complaint.find(filter)
-      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark')
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark routingVerification')
       .sort({ urgency: -1, createdAt: -1 })
       .lean();
 
@@ -96,7 +96,7 @@ router.get('/complaints', requireAuth, requireRole('department', 'admin'), requi
 router.get('/complaints/:id', requireAuth, requireRole('department', 'admin'), requireDepartment, validateParams(objectIdParam), async (req, res, next) => {
   try {
     const complaint = await Complaint.findById(req.validatedParams.id)
-      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark')
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark routingVerification')
       .populate('routing.department', '_id nameEn nameBn jurisdictionType')
       .lean();
 
@@ -144,7 +144,7 @@ router.patch('/complaints/:id/status', requireAuth, requireRole('department', 'a
     const { status, note, resolutionPhoto } = req.validated;
 
     const complaint = await Complaint.findById(req.validatedParams.id)
-      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark');
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark routingVerification');
     if (!complaint) {
       return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
     }

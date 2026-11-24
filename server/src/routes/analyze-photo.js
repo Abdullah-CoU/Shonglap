@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { tmpdir } from 'os';
-import { join, extname } from 'path';
+import { join, extname, basename } from 'path';
 import { randomUUID } from 'crypto';
 import { unlink } from 'fs/promises';
 import { saveOriginal } from '../services/vision.js';
@@ -9,8 +9,11 @@ import { analyzePhoto } from '../services/vision.js';
 import { cleanupTempFiles } from '../utils/audio.js';
 import { applyPrivacyBlur } from '../utils/privacy.js';
 import { logger } from '../utils/logger.js';
+import { signUploadPath } from '../utils/uploadUrls.js';
 
 const router = express.Router();
+import { uploadLimiter } from '../middleware/rateLimits.js';
+router.use(uploadLimiter);
 
 const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8 MB
 
@@ -55,7 +58,7 @@ router.post('/', upload.single('photo'), async (req, res, next) => {
 
     res.status(200).json({
       ...result,
-      savedPath: finalPath,
+      savedPath: signUploadPath(finalPath.startsWith('/uploads/') ? finalPath : `/uploads/${basename(finalPath)}`),
       blurred: shouldBlur,
     });
   } catch (err) {

@@ -234,7 +234,11 @@ All request body/query/params inputs are validated; invalid input returns descri
 - Cookie-auth mutating requests include a basic origin guard.
 - Passwords use scrypt with explicit per-user salt; bcrypt legacy verification supported.
 - Department users are scoped to their own department data.
-- Uploaded files are served from `/uploads` (review access control before public production deployment).
+- Uploaded files are served from `/uploads`; set `PROTECT_UPLOADS=true` in production to require signed, expiring media URLs (dev/demo behavior is unchanged).
+- In production, a weak/missing `JWT_SECRET` or mock defaults fail startup; tests and local demo keep deterministic mocks.
+- Expensive endpoints (media, drafting, search, admin) have per-endpoint rate limits.
+- Routing includes a self-verification pass against category/jurisdiction rules and confidence; low-confidence cases are flagged for human review in the Review page.
+- Known dependency advisories remain in transitive packages (`zod` v3, `node-cron` v3, `@mapbox/node-pre-gyp`); major upgrades are deferred to avoid breaking the Zod schemas and cron API — track before public deployment.
 
 ## Docs
 

@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import cookieParser from 'cookie-parser';
+import { verifyUploadToken } from './utils/uploadUrls.js';
 import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 import transcribeRouter from './routes/transcribe.js';
@@ -38,8 +39,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve uploaded files (photos, audio)
-app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
+// Serve uploaded files (photos, audio). In production, require signed expiring URLs.
+app.use('/uploads', (req, res, next) => {
+  if (!env.PROTECT_UPLOADS) return next();
+  const path = req.originalUrl.split('?')[0];
+  if (!verifyUploadToken(path, req.query.t)) {
+    return res.status(403).json({ error: { message: 'Invalid or expired media link', status: 403 } });
+  }
+  next();
+}, express.static(join(process.cwd(), 'uploads'), {
+  setHeaders: (res) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Disposition', 'inline');
+  },
+}));
 
 // Health Check
 app.get('/api/health', (req, res) => {

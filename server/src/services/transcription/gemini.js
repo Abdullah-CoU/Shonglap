@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises';
 import { basename } from 'path';
 import { logger } from '../../utils/logger.js';
+import { env } from '../../config/env.js';
 
 const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 504]);
 const MAX_RETRIES = 2;
@@ -29,12 +30,12 @@ function inferMime(filePath) {
  * @returns {Promise<{text: string, language: string, duration: number, segments: Array}>}
  */
 export async function transcribe(filePath, { language = 'bn' } = {}) {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const apiKey = env.GEMINI_API_KEY || env.GOOGLE_API_KEY;
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY or GOOGLE_API_KEY is not configured');
   }
 
-  const model = process.env.GEMINI_MODEL || 'gemini-flash-lite-latest';
+  const model = env.GEMINI_MODEL;
   const buffer = await readFile(filePath);
   const base64 = buffer.toString('base64');
   const mimeType = inferMime(filePath);

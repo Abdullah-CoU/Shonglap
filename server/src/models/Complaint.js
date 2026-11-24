@@ -36,6 +36,11 @@ const complaintSchema = new mongoose.Schema({
   locationSource: { type: String, enum: ['area', 'landmark', 'manual', 'unknown'], default: 'unknown' },
   locationConfidence: { type: Number, default: 0 },
   matchedLandmark: { type: String, default: '' },
+  routingVerification: {
+    verified: { type: Boolean, default: false },
+    confidence: { type: Number, default: 0 },
+    checks: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  },
   location: {
     type: { type: String, enum: ['Point'], default: 'Point' },
     coordinates: { type: [Number], default: [90.4125, 23.8103] } // [longitude, latitude]

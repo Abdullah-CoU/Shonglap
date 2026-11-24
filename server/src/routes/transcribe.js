@@ -8,8 +8,11 @@ import { convertToWav, cleanupTempFiles } from '../utils/audio.js';
 import { transcribeAudio } from '../services/transcription/index.js';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
+import { signUploadPath } from '../utils/uploadUrls.js';
 
 const router = express.Router();
+import { uploadLimiter } from '../middleware/rateLimits.js';
+router.use(uploadLimiter);
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -42,7 +45,7 @@ router.post('/', upload.single('audio'), async (req, res, next) => {
     const savedName = `${randomUUID()}${originalExt}`;
     const savedPath = join(uploadsDir, savedName);
     await copyFile(req.file.path, savedPath);
-    const publicPath = `/uploads/${savedName}`;
+    const publicPath = signUploadPath(`/uploads/${savedName}`);
 
     // Gemini accepts common audio formats directly; skip WAV conversion for speed.
     const skipWav = env.MOCK_TRANSCRIPTION || env.TRANSCRIBE_PROVIDER === 'gemini';
