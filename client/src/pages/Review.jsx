@@ -127,6 +127,11 @@ export default function Review() {
 
   const extracted = draft.extracted;
   const routing = draft.routing;
+  const partDepartments = [...new Map(
+    (draft.parts || [])
+      .filter((part) => part.departmentId)
+      .map((part) => [part.departmentId, part])
+  ).values()];
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 pb-24">
@@ -245,20 +250,28 @@ export default function Review() {
           </div>
         )}
 
-        {/* Department */}
+        {/* Departments — one per detected problem */}
         <div className="glass rounded-lg p-4 space-y-2">
           <h2 className="text-lg font-semibold">{t('department')}</h2>
-          {routing.primary ? (
-            <>
-              <p className="text-gray-900 font-medium">
-                {routing.primary.nameBn} / {routing.primary.nameEn}
-              </p>
-              {routing.secondary && routing.secondary.length > 0 && (
-                <div className="text-sm text-gray-500">
-                  Also: {routing.secondary.map((d) => d.nameBn).join(', ')}
-                </div>
-              )}
-            </>
+          {partDepartments.length > 0 ? (
+            partDepartments.map((dept, i) => (
+              <div key={dept.departmentId} className="text-sm">
+                <span className="mr-2 text-gray-400">{i + 1}.</span>
+                <span className="text-gray-900 font-medium">
+                  {dept.nameBn || dept.nameEn || dept.departmentName}
+                  {dept.nameBn && dept.nameEn ? ` / ${dept.nameEn}` : ''}
+                </span>
+                {i === 0 && (
+                  <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px]">
+                    {i18n.language === 'bn' ? 'প্রধান' : 'Primary'}
+                  </span>
+                )}
+              </div>
+            ))
+          ) : routing.primary ? (
+            <p className="text-gray-900 font-medium">
+              {routing.primary.nameBn} / {routing.primary.nameEn}
+            </p>
           ) : (
             <p className="text-gray-600">{t('triage')}</p>
           )}

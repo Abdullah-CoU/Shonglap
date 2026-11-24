@@ -212,6 +212,11 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
       location,
       fallbackDepartmentId: routing.primaryDepartmentId,
     });
+    const partDeptIds = [...new Set(parts.map((p) => p.departmentId).filter(Boolean))];
+    const partDeptDocs = partDeptIds.length
+      ? await Department.find({ _id: { $in: partDeptIds } }).select('_id nameEn nameBn jurisdictionType').lean()
+      : [];
+    const partDeptMap = Object.fromEntries(partDeptDocs.map((d) => [d._id.toString(), d]));
 
     // Get department names for routing response
     const primaryDept = routing.primaryDepartmentId
@@ -259,6 +264,8 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
         urgency: part.urgency,
         departmentId: part.departmentId,
         departmentName: part.aspect,
+        nameEn: partDeptMap[String(part.departmentId)]?.nameEn || '',
+        nameBn: partDeptMap[String(part.departmentId)]?.nameBn || '',
         reason: part.reason,
       })),
       routing: {
@@ -327,6 +334,11 @@ router.post('/draft/:id/answer', validateParams(draftIdParam), validate(answerSc
       location,
       fallbackDepartmentId: routing.primaryDepartmentId,
     });
+    const partDeptIds = [...new Set(parts.map((p) => p.departmentId).filter(Boolean))];
+    const partDeptDocs = partDeptIds.length
+      ? await Department.find({ _id: { $in: partDeptIds } }).select('_id nameEn nameBn jurisdictionType').lean()
+      : [];
+    const partDeptMap = Object.fromEntries(partDeptDocs.map((d) => [d._id.toString(), d]));
 
     const primaryDept = routing.primaryDepartmentId
       ? await Department.findById(routing.primaryDepartmentId).select('_id nameEn nameBn jurisdictionType email phone').lean()
@@ -369,6 +381,8 @@ router.post('/draft/:id/answer', validateParams(draftIdParam), validate(answerSc
         urgency: part.urgency,
         departmentId: part.departmentId,
         departmentName: part.aspect,
+        nameEn: partDeptMap[String(part.departmentId)]?.nameEn || '',
+        nameBn: partDeptMap[String(part.departmentId)]?.nameBn || '',
         reason: part.reason,
       })),
       routing: {
