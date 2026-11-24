@@ -115,7 +115,7 @@ const mockExtract = ({ text, imageDescriptions = [] }) => {
     category = 'mosquito';
   } else if (combined.includes('fire') || combined.includes('আগুন') || combined.includes('blaze') || combined.includes('burn')) {
     category = 'fire';
-  } else if (combined.includes('streetlight') || combined.includes('street light') || combined.includes('lamp') || combined.includes('বাতি') || combined.includes('bati')) {
+  } else if (combined.includes('streetlight') || combined.includes('street light') || combined.includes('স্ট্রিট লাইট') || combined.includes('স্ট্রিটলাইট') || combined.includes('lamp') || combined.includes('বাতি') || combined.includes('bati')) {
     category = 'streetlight';
   } else if (combined.includes('pothole') || combined.includes('gor') || combined.includes('গর্ত') || combined.includes('footpath') || combined.includes('ফুটপাথ') || combined.includes('highway') || combined.includes('bridge') || combined.includes('flyover') || combined.includes('overpass') || combined.includes('রোড') || combined.includes('রাস্তা')) {
     category = 'road';

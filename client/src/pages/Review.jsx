@@ -231,22 +231,30 @@ export default function Review() {
           )}
 
           {draft.extracted?.locationSource === 'landmark' && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 space-y-2 text-sm">
-              <p className="text-amber-900">
-                {i18n.language === 'bn'
-                  ? `আমরা "${draft.extracted.matchedLandmark}" থেকে "${draft.extracted.area}" এলাকা শনাক্ত করেছি। এটি কি সঠিক?`
-                  : `We inferred "${draft.extracted.area}" from "${draft.extracted.matchedLandmark}". Is this correct?`}
+            <div className={`rounded-lg p-3 space-y-2 text-sm border ${areaConfirmed
+              ? 'bg-green-50 border-green-200 text-green-800'
+              : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
+              <p className="font-semibold">
+                {areaConfirmed
+                  ? (i18n.language === 'bn'
+                      ? `✓ এলাকা নিশ্চিত: ${areaOverride || draft.extracted.area}`
+                      : `✓ Area confirmed: ${areaOverride || draft.extracted.area}`)
+                  : (i18n.language === 'bn'
+                      ? `আমরা "${draft.extracted.matchedLandmark}" থেকে "${draft.extracted.area}" এলাকা শনাক্ত করেছি। এটি কি সঠিক?`
+                      : `We inferred "${draft.extracted.area}" from "${draft.extracted.matchedLandmark}". Is this correct?`)}
               </p>
-              <div className="flex gap-2">
-                <button type="button" onClick={() => { setAreaConfirmed(true); setShowAreaChange(false); }}
-                  className="px-3 py-1.5 rounded-md bg-green-600 text-white text-xs">
-                  {i18n.language === 'bn' ? 'হ্যাঁ, সঠিক' : 'Yes, correct'}
-                </button>
-                <button type="button" onClick={() => setShowAreaChange(true)}
-                  className="px-3 py-1.5 rounded-md border border-amber-300 text-amber-800 text-xs">
-                  {i18n.language === 'bn' ? 'এলাকা পরিবর্তন' : 'Change area'}
-                </button>
-              </div>
+              {!areaConfirmed && (
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => { setAreaConfirmed(true); setShowAreaChange(false); }}
+                    className="px-3 py-1.5 rounded-md bg-green-600 text-white text-xs">
+                    {i18n.language === 'bn' ? 'হ্যাঁ, সঠিক' : 'Yes, correct'}
+                  </button>
+                  <button type="button" onClick={() => setShowAreaChange(true)}
+                    className="px-3 py-1.5 rounded-md border border-amber-300 text-amber-800 text-xs">
+                    {i18n.language === 'bn' ? 'এলাকা পরিবর্তন' : 'Change area'}
+                  </button>
+                </div>
+              )}
               {showAreaChange && (
                 <select value={areaOverride || draft.extracted.area}
                   onChange={(e) => { setAreaOverride(e.target.value); setAreaConfirmed(true); }}
@@ -257,7 +265,6 @@ export default function Review() {
               )}
             </div>
           )}
-
           {extracted.missingFields && extracted.missingFields.length > 0 && (
             <div className="text-sm text-orange-600">
               Missing: {extracted.missingFields.join(', ')}

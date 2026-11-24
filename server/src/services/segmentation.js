@@ -21,7 +21,7 @@ const CATEGORY_KEYWORDS = {
   garbage: ['garbage', 'waste', 'trash', 'dustbin', 'ময়লা', 'আবর্জনা', 'moyla'],
   mosquito: ['mosquito', 'dengue', 'মশা', 'ডেঙ্গু', 'mosha'],
   fire: ['fire', 'blaze', 'burn', 'আগুন', 'অগ্নিকাণ্ড'],
-  streetlight: ['streetlight', 'street light', 'lamp', 'বাতি', 'bati'],
+  streetlight: ['streetlight', 'street light', 'স্ট্রিট লাইট', 'স্ট্রিটলাইট', 'lamp', 'বাতি', 'bati'],
   road: ['pothole', 'road', 'footpath', 'highway', 'bridge', 'flyover', 'গর্ত', 'রাস্তা', 'রোড', 'ফুটপাথ', 'rasta', 'gor'],
   traffic: ['traffic', 'signal', 'parking', 'congestion', 'zebra', 'ট্রাফিক', 'জ্যাম', 'সিগন্যাল'],
   construction: ['construction', 'building', 'unauthorized', 'illegal construction', 'নির্মাণ', 'ভবন', 'অবৈধ', 'রাজউক', 'rajuk'],

@@ -61,8 +61,12 @@ function scoreAlias(alias, text, textTokens) {
   if (!aliasTokens.length) return 0;
 
   const exact = aliasTokens.filter((t) => textTokens.includes(t)).length;
+  // Fuzzy matching is only safe for Latin-script (voice-ASR) tokens.
+  // Bangla words are distinct enough that edit distance creates false
+  // positives (e.g. কলাতলী → জিগাতলা), so they must match exactly.
+  const isBangla = (value) => /[\u0980-\u09FF]/.test(value);
   const fuzzy = aliasTokens.filter((t) =>
-    !textTokens.includes(t) && t.length >= 4 && textTokens.some((w) => {
+    !isBangla(t) && !textTokens.includes(t) && t.length >= 4 && textTokens.some((w) => {
       const maxDistance = t.length >= 6 ? 2 : 1;
       return Math.abs(w.length - t.length) <= maxDistance && editDistance(w, t) <= maxDistance;
     })

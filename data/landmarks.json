@@ -782,5 +782,20 @@
     "lat": 23.7821,
     "lng": 90.4121,
     "type": "bus_stop"
+  },
+  {
+    "name": "Kolatali Playground",
+    "aliases": [
+      "কলাতলী খেলার মাঠ",
+      "কলাতলী খেলার ময়দান",
+      "কলাতলী",
+      "kolatali playground",
+      "kolatali",
+      "kolatoli"
+    ],
+    "area": "Dhanmondi",
+    "lat": 23.7379,
+    "lng": 90.3741,
+    "type": "landmark"
   }
 ]

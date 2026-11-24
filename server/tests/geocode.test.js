@@ -36,6 +36,13 @@ describe('Landmark gazetteer', () => {
     expect(hit.landmark).toBe('Jigatola Bus Stand');
   });
 
+  test('Kolatali is not confused with the similar-looking Jigatola', () => {
+    const text = 'কলাতলীর দিকে যাচ্ছে যে খেলার মাঠের কাছে এখানে একটা স্ট্রিট লাইট ভাঙ্গা।';
+    const hit = resolveLandmark(text);
+    expect(hit?.landmark).toBe('Kolatali Playground');
+    expect(hit?.landmark).not.toBe('Jigatola Bus Stand');
+  });
+
   test('new bus stands and markets are recognized', () => {
     expect(resolveLandmark('করওয়ান বাজারের কাছে গর্ত')?.area).toBe('Tejgaon');
     expect(resolveLandmark('পল্টন বাস স্ট্যান্ডে ট্রাফিক')?.area).toBe('Motijheel');
@@ -112,6 +119,14 @@ describe('Landmark-based routing API', () => {
     expect(res.body.extracted.locationSource).toBe('landmark');
     // Motijheel is DSCC in our jurisdiction data
     expect(String(res.body.routing.primary?.nameEn || '')).toContain('South');
+  });
+
+  test('Bangla street light wording is classified as streetlight', async () => {
+    const parts = await segmentComplaint({
+      text: 'কলাতলীর খেলার মাঠের কাছে স্ট্রিট লাইট ভাঙ্গা।',
+      extracted: { category: 'road', urgency: 'medium', area: 'Dhanmondi' },
+    });
+    expect(parts[0]?.category).toBe('streetlight');
   });
 
   test('each problem uses its own landmark for routing', async () => {
