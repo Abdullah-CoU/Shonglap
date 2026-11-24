@@ -11,7 +11,7 @@ const URGENCY_COLORS = {
 };
 
 export default function Review() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   const storedDraft = typeof window !== 'undefined' ? sessionStorage.getItem('draftData') : null;
@@ -227,6 +227,23 @@ export default function Review() {
             </div>
           )}
         </div>
+
+        {/* Automatically detected problem parts */}
+        {draft.parts && draft.parts.length > 0 && (
+          <div className="glass rounded-lg p-4 space-y-2">
+            <h2 className="text-lg font-semibold">
+              {i18n.language === 'bn' ? 'শনাক্তকৃত সমস্যাসমূহ' : 'Detected problems'}
+            </h2>
+            {draft.parts.map((part, i) => (
+              <div key={i} className="border-b border-gray-100 pb-2 last:border-0 text-sm">
+                <p className="text-gray-900">{part.description}</p>
+                <p className="text-xs text-gray-500">
+                  {part.category} · {part.departmentName || part.departmentId} · {part.urgency}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Department */}
         <div className="glass rounded-lg p-4 space-y-2">

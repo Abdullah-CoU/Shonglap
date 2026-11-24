@@ -1,6 +1,7 @@
 /**
- * Build the per-department "part" of a complaint. Each office sees only the
- * slice of the report that concerns it, with its own status and status log.
+ * Per-department "parts" of a complaint. Parts are produced automatically by
+ * segmenting the citizen's text; each office sees only the slice that concerns
+ * it, with its own status and status log.
  */
 
 const ASPECTS = {
@@ -18,92 +19,39 @@ const ASPECTS = {
   RHD: { en: 'Roads & highways', bn: 'রাস্তা ও মহাসড়ক' },
 };
 
-const ASPECT_KEYWORDS = {
-  WASA: ['water', 'drain', 'sewer', 'waterlogging', 'pani', 'পানি', 'নিকাশি', 'ড্রেন', 'প্লাবন'],
-  DNCC: ['road', 'pothole', 'garbage', 'waste', 'streetlight', 'mosquito', 'রাস্তা', 'গর্ত', 'ময়লা', 'আবর্জনা', 'স্ট্রিটলাইট', 'মশা'],
-  DSCC: ['road', 'pothole', 'garbage', 'waste', 'streetlight', 'mosquito', 'রাস্তা', 'গর্ত', 'ময়লা', 'আবর্জনা', 'স্ট্রিটলাইট', 'মশা'],
-  DPDC: ['electric', 'power', 'wire', 'streetlight', 'বিদ্যুৎ', 'তার', 'লোডশেডিং'],
-  DESCO: ['electric', 'power', 'wire', 'streetlight', 'বিদ্যুৎ', 'তার', 'লোডশেডিং'],
-  Titas: ['gas', 'গ্যাস'],
-  Traffic: ['traffic', 'signal', 'congestion', 'ট্রাফিক', 'সিগন্যাল'],
-  Police: ['police', 'crime', 'theft', 'পুলিশ', 'অপরাধ', 'চুরি'],
-  RAJUK: ['construction', 'building', 'illegal', 'নির্মাণ', 'বিল্ডিং'],
-  Fire: ['fire', 'অগ্নিকাণ্ড', 'আগুন'],
-  DOE: ['pollution', 'noise', 'দূষণ', 'শব্দ'],
-  RHD: ['highway', 'national road', 'flyover', 'মহাসড়ক', 'ফ্লাইওভার'],
-};
-
 const DEFAULT_ASPECT = { en: 'Assigned responsibility', bn: 'অর্পিত দায়িত্ব' };
 
-/** Split text into sentences (supports Bangla danda and Latin punctuation). */
-function splitSentences(text = '') {
-  return text
-    .split(/(?<=[.!?।])\s+|\n+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
-/** Pick only the sentences relevant to a department; fall back to the whole text. */
-function scopeDescription(description = '', jurisdictionType = '') {
-  const sentences = splitSentences(description);
-  if (sentences.length < 2) return description;
-  const keywords = ASPECT_KEYWORDS[jurisdictionType] || [];
-  const matched = sentences.filter((s) => {
-    const lower = s.toLowerCase();
-    return keywords.some((kw) => lower.includes(kw.toLowerCase()));
-  });
-  return matched.length ? matched.join(' ') : description;
+export function aspectLabel(jurisdictionType, nameEn = '', nameBn = '') {
+  const aspect = ASPECTS[jurisdictionType] || DEFAULT_ASPECT;
+  return `${aspect.en} / ${aspect.bn}${nameEn ? ` — ${nameBn || nameEn}` : ''}`;
 }
 
 /**
+ * Convert routed problem segments into stored department parts.
+ *
  * @param {Object} params
- * @param {Object} params.routing - RoutingDecision from routeComplaint().
- * @param {Object} params.extracted - Extracted complaint data.
- * @param {Object} params.departmentsById - Map of id -> department doc (with jurisdictionType).
- * @param {string} [params.citizenDepartmentId] - Secondary office chosen by the citizen.
- * @param {string} [params.citizenNote] - Citizen's description of that office's part.
+ * @param {Array} params.parts - Segments from segmentComplaint().
+ * @param {Object} [params.departmentsById] - id -> department doc.
  * @param {string} [params.status] - Initial status for each part.
- * @returns {Array} departmentParts
+ * @returns {Array}
  */
-export function buildDepartmentParts({
-  routing,
-  extracted,
-  departmentsById = {},
-  citizenDepartmentId = '',
-  citizenNote = '',
-  status = 'assigned',
-}) {
-  const ids = [];
-  if (routing.primaryDepartmentId) ids.push({ id: routing.primaryDepartmentId, role: 'primary' });
-  for (const id of routing.secondaryDepartmentIds || []) {
-    ids.push({ id, role: 'secondary' });
-  }
-
-  return ids.map(({ id, role }) => {
-    const dept = departmentsById[id] || {};
-    const type = dept.jurisdictionType || '';
-    const aspect = ASPECTS[type] || DEFAULT_ASPECT;
-    const isCitizenPart = citizenDepartmentId && String(citizenDepartmentId) === String(id);
-    const description = isCitizenPart && citizenNote
-      ? citizenNote
-      : scopeDescription(extracted.description || '', type);
-
-    const reason = isCitizenPart && citizenNote
-      ? 'Citizen indicated this office is also involved'
-      : role === 'primary'
-        ? (routing.reasoning || 'Primary office for this complaint')
-        : 'Shared complaint: secondary office';
-
-    return {
-      department: id,
-      role,
-      aspect: `${aspect.en} / ${aspect.bn}`,
-      description,
-      reason,
-      status,
-      statusLog: [{ status, note: 'Assigned to office', actor: 'system', at: new Date() }],
-    };
-  });
+export function buildDepartmentParts({ parts = [], departmentsById = {}, status = 'assigned' }) {
+  return parts
+    .filter((part) => part.departmentId)
+    .map((part, index) => {
+      const dept = departmentsById[String(part.departmentId)] || {};
+      return {
+        department: part.departmentId,
+        role: index === 0 ? 'primary' : 'secondary',
+        aspect: aspectLabel(dept.jurisdictionType, dept.nameEn, dept.nameBn),
+        category: part.category || '',
+        description: part.description || '',
+        urgency: part.urgency || 'medium',
+        reason: part.reason || 'Automatically detected from complaint text',
+        status,
+        statusLog: [{ status, note: 'Assigned from complaint text', actor: 'system', at: new Date() }],
+      };
+    });
 }
 
 /**

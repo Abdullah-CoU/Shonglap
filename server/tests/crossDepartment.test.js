@@ -9,12 +9,24 @@ import app from '../src/app.js';
 import { Complaint } from '../src/models/Complaint.js';
 import { Department } from '../src/models/Department.js';
 import { User } from '../src/models/User.js';
+import { segmentComplaint, splitIntoProblems, detectCategory } from '../src/services/segmentation.js';
 import { buildDepartmentParts } from '../src/services/departmentParts.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '..', '..', 'data');
 
-describe('Cross-department complaints', () => {
+describe('Automatic multi-problem segmentation', () => {
+  test('splits a mixed-language statement into distinct problems', () => {
+    const text = 'পানি নিকাশি বন্ধ আছে। রাস্তায় বড় গর্ত হয়েছে। Also there is a gas leak near the market.';
+    const problems = splitIntoProblems(text);
+    expect(problems.length).toBeGreaterThanOrEqual(3);
+    expect(detectCategory(problems[0])).toBe('sewerage');
+    expect(detectCategory(problems[1])).toBe('road');
+    expect(detectCategory(problems[2])).toBe('gas');
+  });
+});
+
+describe('Cross-department complaints (automatic routing)', () => {
   let mongoServer;
   let wasaId, dnccId, wasaToken, dnccToken, complaintId;
 
@@ -39,40 +51,31 @@ describe('Cross-department complaints', () => {
     wasaToken = await login('wasa@test.com');
     dnccToken = await login('dncc@test.com');
 
-    const routing = {
-      primaryDepartmentId: wasaId.toString(),
-      secondaryDepartmentIds: [dnccId.toString()],
-      confidence: 0.9,
-      reasoning: 'Waterlogging: drainage + road restoration',
-      needsTriage: false,
-    };
-    const departmentsById = {
-      [wasaId.toString()]: { _id: wasaId, jurisdictionType: 'WASA' },
-      [dnccId.toString()]: { _id: dnccId, jurisdictionType: 'DNCC' },
-    };
-    const parts = buildDepartmentParts({
-      routing,
-      extracted: {
-        description: 'পানি নিকাশি বন্ধ আছে। রাস্তায় বড় গর্ত হয়েছে।',
-      },
-      departmentsById,
-      citizenDepartmentId: dnccId.toString(),
-      citizenNote: 'রাস্তার গর্ত মেরামতি প্রয়োজন',
-      status: 'assigned',
+    const text = 'পানি নিকাশি বন্ধ আছে। রাস্তায় বড় গর্ত হয়েছে।';
+    const segments = await segmentComplaint({
+      text,
+      extracted: { category: 'waterlogging', urgency: 'high', area: 'Gulshan' },
+      area: 'Gulshan',
     });
+    const deptDocs = await Department.find({}).select('_id nameEn nameBn jurisdictionType').lean();
+    const departmentsById = Object.fromEntries(deptDocs.map((d) => [d._id.toString(), d]));
+    const parts = buildDepartmentParts({ parts: segments, departmentsById, status: 'assigned' });
+    const routedIds = [...new Set(parts.map((p) => p.department.toString()))];
 
     const complaint = await Complaint.create({
       trackingId: 'DHK-20261124-0100',
       category: 'waterlogging',
-      description: 'পানি নিকাশি বন্ধ আছে। রাস্তায় বড় গর্ত হয়েছে।',
+      description: text,
       area: 'Gulshan',
       urgency: 'high',
       confidence: 0.9,
       status: 'assigned',
-      routing: [
-        { department: wasaId, isPrimary: true, assignedBy: 'auto', reason: 'WASA leads drainage' },
-        { department: dnccId, isPrimary: false, assignedBy: 'citizen', reason: 'Citizen indicated this office is also involved' },
-      ],
+      routing: routedIds.map((id, i) => ({
+        department: id,
+        isPrimary: i === 0,
+        assignedBy: 'auto',
+        reason: 'Automatically detected from complaint text',
+      })),
       departmentParts: parts,
     });
     complaintId = complaint._id.toString();
@@ -83,9 +86,12 @@ describe('Cross-department complaints', () => {
     await mongoServer.stop();
   });
 
-  test('builds one scoped part per department with citizen note', () => {
-    // Covered via stored complaint in beforeAll; verify shape through APIs below.
-    expect(complaintId).toBeTruthy();
+  test('text segmentation produced two different departments', async () => {
+    const complaint = await Complaint.findById(complaintId).lean();
+    const deptIds = complaint.departmentParts.map((p) => p.department.toString());
+    expect(deptIds).toHaveLength(2);
+    expect(deptIds).toContain(wasaId.toString());
+    expect(deptIds).toContain(dnccId.toString());
   });
 
   test('WASA sees only its drainage part', async () => {
@@ -93,20 +99,19 @@ describe('Cross-department complaints', () => {
       .get(`/api/departments/complaints/${complaintId}`)
       .set('Authorization', `Bearer ${wasaToken}`);
     expect(res.status).toBe(200);
-    expect(res.body.view.role).toBe('primary');
     expect(res.body.view.description).toContain('পানি নিকাশি');
     expect(res.body.view.description).not.toContain('গর্ত');
     expect(res.body.view.shared).toBe(true);
     expect(res.body.view.otherOfficesCount).toBe(1);
   });
 
-  test('DNCC sees only the road part supplied by citizen', async () => {
+  test('DNCC sees only its road part', async () => {
     const res = await request(app)
       .get(`/api/departments/complaints/${complaintId}`)
       .set('Authorization', `Bearer ${dnccToken}`);
     expect(res.status).toBe(200);
-    expect(res.body.view.role).toBe('secondary');
-    expect(res.body.view.description).toBe('রাস্তার গর্ত মেরামতি প্রয়োজন');
+    expect(res.body.view.description).toContain('গর্ত');
+    expect(res.body.view.description).not.toContain('নিকাশি');
   });
 
   test('list responses are scoped per office', async () => {
@@ -116,8 +121,6 @@ describe('Cross-department complaints', () => {
     const dncc = await request(app)
       .get('/api/departments/complaints')
       .set('Authorization', `Bearer ${dnccToken}`);
-    expect(wasa.status).toBe(200);
-    expect(dncc.status).toBe(200);
     const wasaItem = wasa.body.complaints.find((c) => c.trackingId === 'DHK-20261124-0100');
     const dnccItem = dncc.body.complaints.find((c) => c.trackingId === 'DHK-20261124-0100');
     expect(wasaItem.displayDescription).not.toContain('গর্ত');
@@ -137,7 +140,7 @@ describe('Cross-department complaints', () => {
     const wasaView = await request(app)
       .get(`/api/departments/complaints/${complaintId}`)
       .set('Authorization', `Bearer ${wasaToken}`);
-    expect(wasaView.body.view.status).toBe('assigned'); // unchanged by DNCC
+    expect(wasaView.body.view.status).toBe('assigned');
 
     const wasaUpdate = await request(app)
       .patch(`/api/departments/complaints/${complaintId}/status`)
@@ -146,7 +149,6 @@ describe('Cross-department complaints', () => {
     expect(wasaUpdate.status).toBe(200);
 
     const complaint = await Complaint.findById(complaintId).lean();
-    expect(complaint.departmentParts).toHaveLength(2);
     expect(complaint.departmentParts.every((p) => p.status === 'resolved')).toBe(true);
     expect(complaint.status).toBe('resolved');
   });

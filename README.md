@@ -13,7 +13,7 @@ Shonglap is a MERN civic complaint portal for Dhaka, Bangladesh. Citizens can re
 - **DB safety**: Mongoose queries use explicit field selection/projections.
 - **Dashboards**: department dashboard, admin triage/assignment/reroute, analytics, issues list, complaint tracking, notifications.
 - **Reports**: JSON + minimal formal report endpoint; `area` is the required field for formal report generation.
-- **Cross-department complaints**: citizens can flag an issue as spanning two offices and describe each office's part; routing assigns both, stores a scoped `departmentPart` per office (aspect, description, reason, independent status), and each office's dashboard shows only its own part.
+- **Cross-department complaints**: a single voice/text statement is automatically split into distinct problems; each problem is classified and routed to its owning office. Each office receives a scoped `departmentPart` (category, description, reason, independent status) and sees only its own part — no manual department selection.
 
 ## Tech Stack
 

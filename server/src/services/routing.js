@@ -111,7 +111,7 @@ const countKeywordMatches = (keywords, text) => {
   return count;
 };
 
-const scoreDepartment = (dept, searchText, category) => {
+export const scoreDepartment = (dept, searchText, category) => {
   let score = countKeywordMatches(dept.keywords, searchText);
   const boostTypes = CATEGORY_DEPT_BOOST[category] || [];
   if (boostTypes.includes(dept.jurisdictionType)) {
@@ -145,7 +145,7 @@ const findNearestArea = (lat, lng) => {
   return minDist <= 5 ? nearest : null;
 };
 
-const resolveJurisdiction = (candidateTypes, departments, jurisdictions, extracted, location) => {
+export const resolveJurisdiction = (candidateTypes, departments, jurisdictions, extracted, location) => {
   const candidateDeptIds = departments
     .filter((d) => candidateTypes.includes(d.jurisdictionType))
     .map((d) => d._id.toString());
@@ -260,7 +260,7 @@ Classify this complaint and return JSON.`;
 /**
  * Route a complaint to the appropriate department(s).
  */
-export async function routeComplaint(extracted, location = null, options = {}) {
+export async function routeComplaint(extracted, location = null) {
   const normLocation = normalizeLocation(location);
   const departments = await Department.find({}).select('_id nameEn nameBn email responsibilities keywords jurisdictionType slaHours').lean();
   const jurisdictions = await Jurisdiction.find({}).select('_id department areaName wards verified').populate('department', '_id nameEn nameBn email responsibilities keywords jurisdictionType slaHours').lean();
@@ -402,12 +402,6 @@ export async function routeComplaint(extracted, location = null, options = {}) {
     confidence = 0.2;
     reasoning = 'Invalid department ID returned';
   }
-  // A citizen can explicitly say the problem also concerns another office.
-  if (options.secondaryDepartmentId && deptMap.has(String(options.secondaryDepartmentId))) {
-    const extraId = String(options.secondaryDepartmentId);
-    if (extraId !== primaryId && !secondaryIds.includes(extraId)) secondaryIds.push(extraId);
-  }
-
   secondaryIds = [...new Set(secondaryIds.filter((id) => deptMap.has(id) && id !== primaryId))];
 
   // Step 5: Triage
@@ -441,5 +435,65 @@ export async function routeComplaint(extracted, location = null, options = {}) {
     method,
     reasoning,
     needsTriage,
+  };
+}
+
+/**
+ * Pick the best department for one problem segment of a complaint.
+ * Uses the same rule layer as routeComplaint (keyword score + jurisdiction).
+ *
+ * @param {string} text - Problem segment text.
+ * @param {string} category - Detected category for the segment.
+ * @param {Object} [context]
+ * @param {Array} [context.departments]
+ * @param {Array} [context.jurisdictions]
+ * @param {Object} [context.extracted]
+ * @param {Object} [context.location]
+ * @returns {Promise<{departmentId: string|null, jurisdictionType: string, nameEn: string, confidence: number, reason: string}>}
+ */
+export async function pickDepartmentForProblem(text, category, context = {}) {
+  const departments = context.departments || await Department.find({})
+    .select('_id nameEn nameBn email responsibilities keywords jurisdictionType slaHours').lean();
+  const jurisdictions = context.jurisdictions || await Jurisdiction.find({})
+    .select('_id department areaName wards verified').populate('department', '_id nameEn nameBn jurisdictionType').lean();
+
+  const searchText = String(text || '').toLowerCase();
+  const deptMap = new Map(departments.map((d) => [d._id.toString(), d]));
+  const ranked = departments
+    .map((d) => ({ dept: d, score: scoreDepartment(d, searchText, category) }))
+    .sort((a, b) => b.score - a.score);
+
+  const best = ranked[0];
+  if (!best || best.score <= 0) {
+    return { departmentId: null, jurisdictionType: '', nameEn: '', confidence: 0, reason: 'No keyword match for this problem' };
+  }
+
+  let departmentId = best.dept._id.toString();
+  let confidence = 0.9;
+  let reason = `Rule: ${best.dept.nameEn} matched (score ${best.score})`;
+
+  if (isJurisdictionType(best.dept.jurisdictionType)) {
+    const candTypes = ['DNCC', 'DSCC'].includes(best.dept.jurisdictionType)
+      ? ['DNCC', 'DSCC']
+      : ['DPDC', 'DESCO'];
+    const resolved = resolveJurisdiction(candTypes, departments, jurisdictions, context.extracted || {}, context.location || null);
+    if (resolved && deptMap.has(resolved)) {
+      departmentId = resolved;
+      confidence = 0.92;
+      reason = `Jurisdiction resolved to ${deptMap.get(resolved).nameEn}`;
+    } else {
+      confidence = 0.55;
+      reason = `${best.dept.nameEn} matched but area could not be resolved`;
+    }
+  }
+
+  const dept = deptMap.get(departmentId) || best.dept;
+  return {
+    departmentId,
+    jurisdictionType: dept.jurisdictionType,
+    nameEn: dept.nameEn,
+    nameBn: dept.nameBn,
+    confidence,
+    reason,
   };
 }

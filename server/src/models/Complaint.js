@@ -67,7 +67,9 @@ const complaintSchema = new mongoose.Schema({
     department: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', required: true },
     role: { type: String, enum: ['primary', 'secondary'], default: 'secondary' },
     aspect: { type: String, default: '' },
+    category: { type: String, default: '' },
     description: { type: String, default: '' },
+    urgency: { type: String, enum: ['low', 'medium', 'high', 'critical'], default: 'medium' },
     reason: { type: String, default: '' },
     status: {
       type: String,
