@@ -36,7 +36,7 @@ const complaintsQuerySchema = z.object({
 router.get('/triage', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
     const complaints = await Complaint.find({ status: 'triage' })
-      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts')
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark')
       .populate('routing.department', '_id nameEn nameBn jurisdictionType')
       .sort({ createdAt: -1 })
       .lean();
@@ -53,7 +53,7 @@ router.post('/complaints/:id/assign', requireAuth, requireRole('admin'), validat
     const { departmentId, note } = req.validated;
 
     const complaint = await Complaint.findById(req.validatedParams.id)
-      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts');
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark');
     if (!complaint) {
       return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
     }
@@ -108,7 +108,7 @@ router.post('/complaints/:id/reroute', requireAuth, requireRole('admin'), valida
     const { newDepartmentId, note } = req.validated;
 
     const complaint = await Complaint.findById(req.validatedParams.id)
-      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts');
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark');
     if (!complaint) {
       return res.status(404).json({ error: { message: 'Complaint not found', status: 404 } });
     }
@@ -188,7 +188,7 @@ router.get('/complaints', requireAuth, requireRole('admin'), validateQuery(compl
     }
 
     const complaints = await Complaint.find(filter)
-      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts')
+      .select('_id trackingId category description area urgency status confidence location attachments statusLog routing citizen draftId source createdAt updatedAt slaDeadline supporters upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark')
       .populate('routing.department', '_id nameEn nameBn jurisdictionType')
       .sort({ createdAt: -1 })
       .lean();

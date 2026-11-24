@@ -1,0 +1,228 @@
+[
+  {
+    "name": "Farmgate Bus Terminal",
+    "aliases": ["farmgate bus terminal", "farmgate bus stand", "farmgate", "farm gate", "ফার্মগেট বাসস্ট্যান্ড", "ফার্মগেট", "ফার্ম গেট"],
+    "area": "Tejgaon",
+    "ward": 18,
+    "lat": 23.7748,
+    "lng": 90.4053,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Tejgaon Industrial Area",
+    "aliases": ["tejgaon industrial area", "tejgaon", "তেজগাঁও শিল্পাঞ্চল", "তেজগাঁও"],
+    "area": "Tejgaon",
+    "lat": 23.7716,
+    "lng": 90.4038,
+    "type": "landmark"
+  },
+  {
+    "name": "Mohakhali Bus Terminal",
+    "aliases": ["mohakhali bus terminal", "mohakhali bus stand", "mohakhali", "মোহাখালি বাসস্ট্যান্ড", "মোহাখালি"],
+    "area": "Mohakhali",
+    "lat": 23.7796,
+    "lng": 90.4012,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Gulshan 2 Roundabout",
+    "aliases": ["gulshan 2 roundabout", "gulshan 2", "gulshan two", "গুলশান ২", "গুলশান দুই", "গুলশান"],
+    "area": "Gulshan",
+    "ward": 19,
+    "lat": 23.7809,
+    "lng": 90.4125,
+    "type": "landmark"
+  },
+  {
+    "name": "Gulshan Lake Park",
+    "aliases": ["gulshan lake", "gulshan lake park", "গুলশান লেক", "গুলশান হ্রদ"],
+    "area": "Gulshan",
+    "lat": 23.7785,
+    "lng": 90.4112,
+    "type": "landmark"
+  },
+  {
+    "name": "Banani Bus Stop",
+    "aliases": ["banani bus stop", "banani bus stand", "banani", "বনানী বাসস্ট্যান্ড", "বনানী"],
+    "area": "Banani",
+    "ward": 19,
+    "lat": 23.7768,
+    "lng": 90.4009,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Uttara Sector 11 Bus Stand",
+    "aliases": ["uttara sector 11", "uttara 11 bus stand", "sector 11 uttara", "উত্তরা সেক্টর ১১", "উত্তরা ১১"],
+    "area": "Uttara",
+    "ward": 3,
+    "lat": 23.8756,
+    "lng": 90.3917,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Diyabari Bus Stand",
+    "aliases": ["diyabari", "diyabari bus stand", "দিয়াবাড়ি", "দিয়াবাড়ি বাসস্ট্যান্ড"],
+    "area": "Uttara",
+    "lat": 23.8681,
+    "lng": 90.3974,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Uttara Rajuk Market",
+    "aliases": ["uttara rajuk market", "rajuk market uttara", "উত্তরা রাজউক মার্কেট", "রাজউক মার্কেট"],
+    "area": "Uttara",
+    "lat": 23.8705,
+    "lng": 90.3988,
+    "type": "shop"
+  },
+  {
+    "name": "Mirpur 10 Bus Stand",
+    "aliases": ["mirpur 10", "mirpur 10 bus stand", "mirpur d10", "মিরপুর ১০", "মিরপুর ১০ বাসস্ট্যান্ড"],
+    "area": "Mirpur",
+    "ward": 9,
+    "lat": 23.8055,
+    "lng": 90.3618,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Mirpur 1 Bus Stand",
+    "aliases": ["mirpur 1", "mirpur 1 bus stand", "মিরপুর ১", "মিরপুর ১ বাসস্ট্যান্ড"],
+    "area": "Mirpur",
+    "ward": 6,
+    "lat": 23.8112,
+    "lng": 90.3686,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Dhaka Zoo",
+    "aliases": ["dhaka zoo", "mirpur zoo", "ঢাকা চিড়িয়াখানা", "মিরপুর চিড়িয়াখানা"],
+    "area": "Mirpur",
+    "lat": 23.8135,
+    "lng": 90.3583,
+    "type": "landmark"
+  },
+  {
+    "name": "Dhanmondi 27",
+    "aliases": ["dhanmondi 27", "dhanmondi road 27", "ধানমন্ডি ২৭", "ধানমন্ডি ২৭ নম্বর রোড"],
+    "area": "Dhanmondi",
+    "ward": 7,
+    "lat": 23.7461,
+    "lng": 90.3743,
+    "type": "landmark"
+  },
+  {
+    "name": "Dhanmondi Lake",
+    "aliases": ["dhanmondi lake", "ধানমন্ডি লেক", "ধানমন্ডি হ্রদ"],
+    "area": "Dhanmondi",
+    "lat": 23.7445,
+    "lng": 90.3735,
+    "type": "landmark"
+  },
+  {
+    "name": "Shapla Square",
+    "aliases": ["shapla square", "shapla chattar", "শাপলা চত্বর", "শাপলা স্কোয়ার"],
+    "area": "Motijheel",
+    "ward": 21,
+    "lat": 23.7243,
+    "lng": 90.4226,
+    "type": "landmark"
+  },
+  {
+    "name": "Motijheel Bus Stand",
+    "aliases": ["motijheel bus stand", "motijheel", "মতিঝিল বাসস্ট্যান্ড", "মতিঝিল"],
+    "area": "Motijheel",
+    "lat": 23.7255,
+    "lng": 90.4211,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Sadarghat Launch Terminal",
+    "aliases": ["sadarghat", "sadarghat launch terminal", "সাদারঘাট", "সাদারঘাট লঞ্চ টার্মিনাল"],
+    "area": "Old Dhaka",
+    "lat": 23.7096,
+    "lng": 90.4198,
+    "type": "landmark"
+  },
+  {
+    "name": "Lalbagh Fort",
+    "aliases": ["lalbagh fort", "লালবাগ কেল্লা", "লালবাগ"],
+    "area": "Lalbagh",
+    "ward": 29,
+    "lat": 23.7109,
+    "lng": 90.3949,
+    "type": "landmark"
+  },
+  {
+    "name": "Chawkbazar Mosque",
+    "aliases": ["chawkbazar", "chawkbazar mosque", "চকবাজার", "চোয়াকবাজার"],
+    "area": "Old Dhaka",
+    "lat": 23.7129,
+    "lng": 90.4139,
+    "type": "landmark"
+  },
+  {
+    "name": "Jatrabari Bus Stand",
+    "aliases": ["jatrabari bus stand", "jatrabari", "যাত্রাবাড়ী বাসস্ট্যান্ড", "যাত্রাবাড়ী"],
+    "area": "Jatrabari",
+    "ward": 32,
+    "lat": 23.7018,
+    "lng": 90.4335,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Mohammadpur Bus Stand",
+    "aliases": ["mohammadpur bus stand", "mohammadpur", "মোহাম্মদপুর বাসস্ট্যান্ড", "মোহাম্মদপুর"],
+    "area": "Mohammadpur",
+    "lat": 23.7574,
+    "lng": 90.3657,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Shahbag Intersection",
+    "aliases": ["shahbag", "shahbagh", "শাহবাগ", "শাহবাগ মোড়"],
+    "area": "Dhanmondi",
+    "lat": 23.7505,
+    "lng": 90.3927,
+    "type": "landmark"
+  },
+  {
+    "name": "Baridhara Bus Stop",
+    "aliases": ["baridhara", "baridhara bus stop", "বারিধারা বাসস্ট্যান্ড", "বারিধারা"],
+    "area": "Baridhara",
+    "lat": 23.7822,
+    "lng": 90.4192,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Badda Bus Stand",
+    "aliases": ["badda bus stand", "badda", "বড্ডা বাসস্ট্যান্ড", "বড্ডা"],
+    "area": "Badda",
+    "lat": 23.7695,
+    "lng": 90.4328,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Rampura Bus Stand",
+    "aliases": ["rampura", "rampura bus stand", "রামপুরা বাসস্ট্যান্ড", "রামপুরা"],
+    "area": "Rampura",
+    "lat": 23.7707,
+    "lng": 90.4259,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Kafrul Bus Stand",
+    "aliases": ["kafrul", "kafrul bus stand", "কাফরুল বাসস্ট্যান্ড", "কাফরুল"],
+    "area": "Kafrul",
+    "lat": 23.7831,
+    "lng": 90.3778,
+    "type": "bus_stop"
+  },
+  {
+    "name": "Savar Bus Stand",
+    "aliases": ["savar bus stand", "savar", "সাভার বাসস্ট্যান্ড", "সাভার"],
+    "area": "Savar",
+    "lat": 23.7118,
+    "lng": 90.2547,
+    "type": "bus_stop"
+  }
+]

@@ -13,6 +13,7 @@ import { findDuplicates, addSupporter } from '../services/duplicate.js';
 import { reactToComplaint } from '../services/reactions.js';
 import { buildDepartmentParts } from '../services/departmentParts.js';
 import { segmentComplaint } from '../services/segmentation.js';
+import { resolveComplaintLocation } from '../services/geocode.js';
 import { validate, validateParams, validateQuery } from '../middleware/validate.js';
 import { logger } from '../utils/logger.js';
 import { env } from '../config/env.js';
@@ -49,6 +50,8 @@ const answerSchema = z.object({
 const submitSchema = z.object({
   draftId: z.string().uuid('Invalid draft ID'),
   force: z.boolean().optional().default(false),
+  areaConfirmed: z.boolean().optional().default(false),
+  areaOverride: z.string().trim().max(100).optional().default(''),
 });
 
 const draftIdParam = z.object({
@@ -191,10 +194,13 @@ router.post('/draft', validate(draftSchema), async (req, res, next) => {
     }
 
     // Run extraction
-    const extracted = await extractComplaint({ text: mergedText });
+    let extracted = await extractComplaint({ text: mergedText });
+    const locationResult = resolveComplaintLocation(extracted, inputs);
+    extracted = locationResult.extracted;
 
-    // Build location (from lat/lng or resolve from area)
+    // Build location (from lat/lng, landmark or resolve from area)
     let location = inputs.lat && inputs.lng ? { lat: inputs.lat, lng: inputs.lng } : null;
+    if (!location && locationResult.location) location = locationResult.location;
     if (!location && inputs.area) {
       location = resolveCoords(inputs.area);
     }
@@ -320,9 +326,12 @@ router.post('/draft/:id/answer', validateParams(draftIdParam), validate(answerSc
       });
     }
 
-    const extracted = await extractComplaint({ text: mergedText });
+    let extracted = await extractComplaint({ text: mergedText });
+    const locationResult = resolveComplaintLocation(extracted, inputs);
+    extracted = locationResult.extracted;
 
     let location = inputs.lat && inputs.lng ? { lat: inputs.lat, lng: inputs.lng } : null;
+    if (!location && locationResult.location) location = locationResult.location;
     if (!location && inputs.area) location = resolveCoords(inputs.area);
     if (!location && extracted.area) location = resolveCoords(extracted.area);
 
@@ -475,7 +484,25 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
       return res.status(404).json({ error: { message: 'Draft not found', status: 404 } });
     }
 
-    const { inputs, extracted, routing: routingData } = draft.data;
+    let { inputs, extracted, routing: routingData } = draft.data;
+    const { areaOverride, areaConfirmed } = req.validated;
+
+    if (areaOverride && areaOverride !== extracted.area) {
+      extracted = {
+        ...extracted,
+        area: areaOverride,
+        ward: null,
+        landmark: '',
+        locationSource: 'manual',
+        locationConfidence: 1,
+        matchedLandmark: '',
+        missingFields: (extracted.missingFields || []).filter((f) => f !== 'area'),
+      };
+      inputs = { ...inputs, area: areaOverride };
+      routingData = await routeComplaint(extracted, resolveCoords(areaOverride));
+    } else if (areaConfirmed && extracted.locationSource === 'landmark') {
+      extracted = { ...extracted, locationConfidence: Math.max(extracted.locationConfidence || 0, 0.9) };
+    }
 
     // Duplicate detection (unless forced)
     // Resolve location for duplicate check
@@ -573,6 +600,9 @@ router.post('/submit', ...submitMiddlewares, async (req, res, next) => {
       area: extracted.area || inputs.area || 'Unknown',
       ward: extracted.ward,
       landmark: extracted.landmark,
+      locationSource: extracted.locationSource || 'unknown',
+      locationConfidence: extracted.locationConfidence || 0,
+      matchedLandmark: extracted.matchedLandmark || '',
       location: (() => {
         const lat = inputs.lat || (resolveCoords(inputs.area) || resolveCoords(extracted.area))?.lat;
         const lng = inputs.lng || (resolveCoords(inputs.area) || resolveCoords(extracted.area))?.lng;
@@ -729,7 +759,7 @@ router.get('/:trackingId/report', validateParams(trackingIdParam), async (req, r
 router.get('/track/:trackingId', validateParams(trackingIdParam), async (req, res, next) => {
   try {
     const complaint = await Complaint.findOne({ trackingId: req.validatedParams.trackingId })
-      .select('trackingId category description area urgency status statusLog createdAt updatedAt upvotes downvotes departmentParts')
+      .select('trackingId category description area urgency status statusLog createdAt updatedAt upvotes downvotes departmentParts locationSource locationConfidence matchedLandmark')
       .populate('departmentParts.department', '_id nameEn nameBn jurisdictionType')
       .lean();
 
@@ -742,6 +772,8 @@ router.get('/track/:trackingId', validateParams(trackingIdParam), async (req, re
       category: complaint.category,
       description: complaint.description,
       area: complaint.area,
+      locationSource: complaint.locationSource || 'unknown',
+      matchedLandmark: complaint.matchedLandmark || '',
       urgency: complaint.urgency,
       status: complaint.status,
       upvotes: complaint.upvotes || 0,

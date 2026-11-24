@@ -107,6 +107,12 @@ export default function Track() {
                   {t(complaint.urgency)}
                 </span>
               </div>
+              {complaint.locationSource === 'landmark' && (
+                <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+                  {t('areaFromLandmark') || 'Area identified from'}: {complaint.matchedLandmark}
+                </div>
+              )}
+
               {complaint.shared && (
                 <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 space-y-2">
                   <p className="text-sm font-semibold text-purple-900">🤝 {t('sharedComplaint') || 'Shared with multiple offices'}</p>

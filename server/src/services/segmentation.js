@@ -1,6 +1,7 @@
 import { Department } from '../models/Department.js';
 import { Jurisdiction } from '../models/Jurisdiction.js';
 import { pickDepartmentForProblem } from './routing.js';
+import { resolveLandmark } from './geocode.js';
 
 /**
  * Automatic problem segmentation.
@@ -104,11 +105,23 @@ export async function segmentComplaint({ text, extracted = {}, location = null, 
   const parts = [];
   for (const description of problems) {
     const category = detectCategory(description) || extracted.category || 'road';
+
+    // A landmark in this specific problem overrides the complaint-level area.
+    const localLandmark = resolveLandmark(description);
+    const segmentExtracted = {
+      ...extracted,
+      area: localLandmark?.area || extracted.area || '',
+      ward: localLandmark?.ward ?? extracted.ward ?? null,
+    };
+    const segmentLocation = localLandmark
+      ? { lat: localLandmark.lat, lng: localLandmark.lng }
+      : location;
+
     const pick = await pickDepartmentForProblem(description, category, {
       departments,
       jurisdictions,
-      extracted: { ...extracted, area: extracted.area || '' },
-      location,
+      extracted: segmentExtracted,
+      location: segmentLocation,
     });
 
     parts.push({
@@ -116,6 +129,7 @@ export async function segmentComplaint({ text, extracted = {}, location = null, 
       category,
       urgency: detectUrgency(description, extracted.urgency || 'medium'),
       departmentId: pick.departmentId || fallbackDepartmentId || null,
+      landmark: localLandmark?.landmark || '',
       jurisdictionType: pick.jurisdictionType,
       aspect: pick.nameEn,
       confidence: pick.confidence,

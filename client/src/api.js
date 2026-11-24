@@ -69,7 +69,7 @@ export const apiClient = {
   answerDraft: (id, answers) => api.post(`/api/complaints/draft/${id}/answer`, answers).then((r) => r.data),
 
   /** @param {string} draftId @param {boolean} [force] @returns {Promise<SubmitResponse>} */
-  submitComplaint: (draftId, force = false) => api.post('/api/complaints/submit', { draftId, force }).then((r) => r.data),
+  submitComplaint: (draftId, force = false, options = {}) => api.post('/api/complaints/submit', { draftId, force, ...options }).then((r) => r.data),
 
   /** @param {string} trackingId @returns {Promise<{trackingId: string, supporters: number}>} */
   addSupport: (trackingId) => api.post(`/api/complaints/${trackingId}/support`).then((r) => r.data),

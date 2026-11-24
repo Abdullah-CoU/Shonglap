@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api.js';
+import { AREAS } from '../constants/areas.js';
 
 const URGENCY_COLORS = {
   low: 'bg-gray-200 text-gray-800',
@@ -24,6 +25,9 @@ export default function Review() {
   const [editing, setEditing] = useState(false);
   const [editedText, setEditedText] = useState(initialDraft?.extracted?.description || '');
   const [duplicate, setDuplicate] = useState([]);
+  const [areaConfirmed, setAreaConfirmed] = useState(false);
+  const [areaOverride, setAreaOverride] = useState('');
+  const [showAreaChange, setShowAreaChange] = useState(false);
 
   useEffect(() => {
     if (!draft) navigate('/report');
@@ -64,7 +68,7 @@ export default function Review() {
     setLoading(true);
     setError('');
     try {
-      const result = await apiClient.submitComplaint(draft.draftId);
+      const result = await apiClient.submitComplaint(draft.draftId, false, { areaConfirmed, areaOverride });
 
       // Duplicate detected: let the user choose support-existing or submit anyway
       if (result.duplicate) {
@@ -105,7 +109,7 @@ export default function Review() {
     setDuplicate([]);
     setLoading(true);
     try {
-      const result = await apiClient.submitComplaint(draft.draftId, true);
+      const result = await apiClient.submitComplaint(draft.draftId, true, { areaConfirmed, areaOverride });
       sessionStorage.setItem('trackingId', result.trackingId);
       sessionStorage.removeItem('draftData');
       sessionStorage.removeItem('draftId');
@@ -223,6 +227,34 @@ export default function Review() {
             <div>
               <span className="text-sm text-gray-500">{t('area')}:</span>
               <span className="ml-2 text-gray-900">{extracted.area}</span>
+            </div>
+          )}
+
+          {draft.extracted?.locationSource === 'landmark' && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 space-y-2 text-sm">
+              <p className="text-amber-900">
+                {i18n.language === 'bn'
+                  ? `আমরা "${draft.extracted.matchedLandmark}" থেকে "${draft.extracted.area}" এলাকা শনাক্ত করেছি। এটি কি সঠিক?`
+                  : `We inferred "${draft.extracted.area}" from "${draft.extracted.matchedLandmark}". Is this correct?`}
+              </p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => { setAreaConfirmed(true); setShowAreaChange(false); }}
+                  className="px-3 py-1.5 rounded-md bg-green-600 text-white text-xs">
+                  {i18n.language === 'bn' ? 'হ্যাঁ, সঠিক' : 'Yes, correct'}
+                </button>
+                <button type="button" onClick={() => setShowAreaChange(true)}
+                  className="px-3 py-1.5 rounded-md border border-amber-300 text-amber-800 text-xs">
+                  {i18n.language === 'bn' ? 'এলাকা পরিবর্তন' : 'Change area'}
+                </button>
+              </div>
+              {showAreaChange && (
+                <select value={areaOverride || draft.extracted.area}
+                  onChange={(e) => { setAreaOverride(e.target.value); setAreaConfirmed(true); }}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                  <option value="">{i18n.language === 'bn' ? 'এলাকা নির্বাচন করুন' : 'Select area'}</option>
+                  {AREAS.map((area) => <option key={area} value={area}>{area}</option>)}
+                </select>
+              )}
             </div>
           )}
 

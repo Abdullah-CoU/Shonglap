@@ -3,13 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../api.js';
 import CategoryGrid from '../components/CategoryGrid.jsx';
+import { AREAS } from '../constants/areas.js';
 
-const AREAS = [
-  'Uttara', 'Mirpur', 'Gulshan', 'Banani', 'Baridhara', 'Badda', 'Rampura',
-  'Mohakhali', 'Tejgaon', 'Kafrul', 'Cantonment', 'Dhanmondi', 'Motijheel',
-  'Old Dhaka', 'Jatrabari', 'Wari', 'Lalbagh', 'Sutrapur', 'Gendaria',
-  'Shyampur', 'Demra', 'Kadamtali', 'Mohammadpur', 'Adabar', 'Hazaribagh', 'Savar',
-];
 
 export default function Report() {
   const { t, i18n } = useTranslation();

@@ -14,6 +14,7 @@ Shonglap is a MERN civic complaint portal for Dhaka, Bangladesh. Citizens can re
 - **Dashboards**: department dashboard, admin triage/assignment/reroute, analytics, issues list, complaint tracking, notifications.
 - **Reports**: JSON + minimal formal report endpoint; `area` is the required field for formal report generation.
 - **Cross-department complaints**: a single voice/text statement is automatically split into distinct problems; each problem is classified and routed to its owning office. Each office receives a scoped `departmentPart` (category, description, reason, independent status) and sees only its own part — no manual department selection.
+- **Landmark-based location**: a curated Dhaka landmark gazetteer (`data/landmarks.json`, bus stops/shops/landmarks with Bangla/Banglish aliases and fuzzy ASR matching) resolves the area when the citizen names a place instead of an area. Each problem uses its own landmark, and the review page asks the citizen to confirm or correct the inferred area.
 
 ## Tech Stack
 

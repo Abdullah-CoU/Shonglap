@@ -33,6 +33,9 @@ const complaintSchema = new mongoose.Schema({
   area: { type: String, required: true, index: true },
   ward: { type: Number, index: true },
   landmark: { type: String, default: '' },
+  locationSource: { type: String, enum: ['area', 'landmark', 'manual', 'unknown'], default: 'unknown' },
+  locationConfidence: { type: Number, default: 0 },
+  matchedLandmark: { type: String, default: '' },
   location: {
     type: { type: String, enum: ['Point'], default: 'Point' },
     coordinates: { type: [Number], default: [90.4125, 23.8103] } // [longitude, latitude]
